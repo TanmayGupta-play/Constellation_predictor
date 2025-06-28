@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 genai.configure(api_key=os.getenv('API-KEY'))
 model = genai.GenerativeModel('gemini-2.0-flash')
 
-whisper_model = whisper.load_model("base")
+whisper_model = whisper.load_model("medium")
 
 def chatbot(request):
     return render(request, 'index.html')
