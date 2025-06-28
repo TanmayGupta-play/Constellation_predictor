@@ -37,7 +37,69 @@
                class="w-full rounded-xl border border-white/20 object-contain">
         </div>
       </div>
-      
+  <div class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 p-6 rounded-xl shadow-2xl">
+  {% if detected_constellations %}
+    <h2 class="text-3xl font-bold text-white mb-6 flex items-center">
+      <svg class="w-8 h-8 mr-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+      </svg>
+      Detected Constellations
+    </h2>
+    
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {% for constellation in detected_constellations %}
+        <div class="bg-black/40 backdrop-blur-sm border border-white/20 rounded-lg p-5 hover:bg-black/60 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/20">
+          <!-- Constellation Header -->
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-white">{{ constellation.name }}</h3>
+            <div class="flex items-center space-x-2">
+              <span class="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-sm font-medium">
+                {{ constellation.confidence|floatformat:2 }}
+              </span>
+              <button onclick="speakConstellation('{{ constellation.name }}')" 
+                      class="p-2 bg-blue-500/20 hover:bg-blue-500/40 rounded-full transition-colors duration-200">
+                <svg class="w-4 h-4 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.824L4.168 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.168l4.215-3.824a1 1 0 011.617.824zM9 5.049L6.062 7.25A1 1 0 015.5 8H3v4h2.5a1 1 0 01.562.25L9 14.951V5.049z" clip-rule="evenodd"/>
+                  <path d="M12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Constellation Info Loading Area -->
+          <div id="info-{{ forloop.counter }}" class="constellation-info">
+            <div class="flex items-center justify-center py-4">
+              <button onclick="loadConstellationInfo('{{ constellation.name }}', {{ forloop.counter }})"
+                      class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white rounded-lg transition-all duration-200 transform hover:scale-105 flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                </svg>
+                <span>Learn More</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Coordinates Display -->
+          <div class="mt-4 p-3 bg-gray-800/50 rounded-lg">
+            <p class="text-gray-300 text-sm mb-1">Detection Coordinates:</p>
+            <div class="grid grid-cols-2 gap-2 text-xs text-gray-400">
+              <span>X: {{ constellation.coordinates.0|floatformat:0 }} - {{ constellation.coordinates.2|floatformat:0 }}</span>
+              <span>Y: {{ constellation.coordinates.1|floatformat:0 }} - {{ constellation.coordinates.3|floatformat:0 }}</span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="text-center py-12">
+      <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-300 mb-2">No Constellations Detected</h3>
+      <p class="text-gray-400">Try uploading a clearer night sky image</p>
+    </div>
+  {% endif %}
+</div>
     </div>
   </div>
 </section>
@@ -116,7 +178,261 @@
 
     createResultStars();
 </script>
+<script>
+// Text-to-Speech functionality
+function speakConstellation(constellationName) {
+    if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        // Get constellation info from the loaded data
+        const infoElement = document.querySelector(`[data-constellation="${constellationName}"]`);
+        let textToSpeak = `Constellation: ${constellationName}`;
+        
+        if (infoElement) {
+            const description = infoElement.querySelector('.constellation-description');
+            if (description) {
+                textToSpeak += `. ${description.textContent}`;
+            }
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        
+        speechSynthesis.speak(utterance);
+    } else {
+        alert('Text-to-speech is not supported in your browser');
+    }
+}
 
+// Load constellation information (simulated Gemini API call)
+async function loadConstellationInfo(constellationName, index) {
+    const infoDiv = document.getElementById(`info-${index}`);
+    
+    // Show loading state
+    infoDiv.innerHTML = `
+        <div class="flex items-center justify-center py-4">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            <span class="ml-2 text-gray-300">Loading constellation info...</span>
+        </div>
+    `;
+    
+            try {
+        const response = await fetch('/get-constellation-info/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                constellation_name: constellationName
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayConstellationInfo(infoDiv, data.name, data.info);
+        } else {
+            throw new Error('Failed to fetch constellation info');
+        }
+        
+    } catch (error) {
+        // Fallback with basic info
+        displayConstellationInfo(infoDiv, constellationName, getBasicConstellationInfo(constellationName));
+    }
+}
+
+function displayConstellationInfo(container, name, info) {
+    container.innerHTML = `
+        <div data-constellation="${name}" class="constellation-info-content animate-fade-in">
+            <div class="constellation-description text-gray-300 text-sm leading-relaxed mb-3">
+                ${info}
+            </div>
+            <div class="flex items-center justify-between">
+                <button onclick="speakConstellation('${name}')" 
+                        class="px-3 py-1 bg-green-500/20 hover:bg-green-500/40 text-green-300 rounded text-sm transition-colors duration-200 flex items-center space-x-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.824L4.168 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.168l4.215-3.824a1 1 0 011.617.824z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Listen</span>
+                </button>
+                <span class="text-xs text-gray-500">✨ Powered by AI</span>
+            </div>
+        </div>
+    `;
+}
+
+// Basic constellation information fallback
+function getBasicConstellationInfo(name) {
+    const basicInfo = {
+        'Orion': 'Orion is one of the most recognizable constellations, known as "The Hunter." It contains bright stars like Betelgeuse and Rigel, and the famous Orion Nebula.',
+        'Ursa Major': 'Ursa Major, the Great Bear, contains the famous Big Dipper asterism. It\'s visible year-round in most northern hemisphere locations.',
+        'Cassiopeia': 'Cassiopeia is known for its distinctive W-shape formed by five bright stars. In Greek mythology, she was a vain queen.',
+        'Leo': 'Leo the Lion is a zodiac constellation best seen in spring. Its brightest star is Regulus, marking the lion\'s heart.',
+        'Cygnus': 'Cygnus, the Swan, flies along the Milky Way. Its brightest star Deneb forms part of the Summer Triangle.',
+    };
+    
+    return basicInfo[name] || `${name} is a fascinating constellation with a rich history in astronomy and mythology. This celestial pattern has guided navigators and inspired storytellers for thousands of years.`;
+}
+
+// CSRF token helper for Django
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
+</script><script>
+// Text-to-Speech functionality
+function speakConstellation(constellationName) {
+    if ('speechSynthesis' in window) {
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        // Get constellation info from the loaded data
+        const infoElement = document.querySelector(`[data-constellation="${constellationName}"]`);
+        let textToSpeak = `Constellation: ${constellationName}`;
+        
+        if (infoElement) {
+            const description = infoElement.querySelector('.constellation-description');
+            if (description) {
+                textToSpeak += `. ${description.textContent}`;
+            }
+        }
+        
+        const utterance = new SpeechSynthesisUtterance(textToSpeak);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        
+        speechSynthesis.speak(utterance);
+    } else {
+        alert('Text-to-speech is not supported in your browser');
+    }
+}
+
+// Load constellation information (simulated Gemini API call)
+async function loadConstellationInfo(constellationName, index) {
+    const infoDiv = document.getElementById(`info-${index}`);
+    
+    // Show loading state
+    infoDiv.innerHTML = `
+        <div class="flex items-center justify-center py-4">
+            <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-500"></div>
+            <span class="ml-2 text-gray-300">Loading constellation info...</span>
+        </div>
+    `;
+    
+            try {
+        const response = await fetch('/get-constellation-info/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify({
+                constellation_name: constellationName
+            })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            displayConstellationInfo(infoDiv, data.name, data.info);
+        } else {
+            throw new Error('Failed to fetch constellation info');
+        }
+        
+    } catch (error) {
+        // Fallback with basic info
+        displayConstellationInfo(infoDiv, constellationName, getBasicConstellationInfo(constellationName));
+    }
+}
+
+function displayConstellationInfo(container, name, info) {
+    container.innerHTML = `
+        <div data-constellation="${name}" class="constellation-info-content animate-fade-in">
+            <div class="constellation-description text-gray-300 text-sm leading-relaxed mb-3">
+                ${info}
+            </div>
+            <div class="flex items-center justify-between">
+                <button onclick="speakConstellation('${name}')" 
+                        class="px-3 py-1 bg-green-500/20 hover:bg-green-500/40 text-green-300 rounded text-sm transition-colors duration-200 flex items-center space-x-1">
+                    <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.617.824L4.168 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.168l4.215-3.824a1 1 0 011.617.824z" clip-rule="evenodd"/>
+                    </svg>
+                    <span>Listen</span>
+                </button>
+                <span class="text-xs text-gray-500">✨ Powered by AI</span>
+            </div>
+        </div>
+    `;
+}
+
+// Basic constellation information fallback
+function getBasicConstellationInfo(name) {
+    const basicInfo = {
+        'Orion': 'Orion is one of the most recognizable constellations, known as "The Hunter." It contains bright stars like Betelgeuse and Rigel, and the famous Orion Nebula.',
+        'Ursa Major': 'Ursa Major, the Great Bear, contains the famous Big Dipper asterism. It\'s visible year-round in most northern hemisphere locations.',
+        'Cassiopeia': 'Cassiopeia is known for its distinctive W-shape formed by five bright stars. In Greek mythology, she was a vain queen.',
+        'Leo': 'Leo the Lion is a zodiac constellation best seen in spring. Its brightest star is Regulus, marking the lion\'s heart.',
+        'Cygnus': 'Cygnus, the Swan, flies along the Milky Way. Its brightest star Deneb forms part of the Summer Triangle.',
+    };
+    
+    return basicInfo[name] || `${name} is a fascinating constellation with a rich history in astronomy and mythology. This celestial pattern has guided navigators and inspired storytellers for thousands of years.`;
+}
+
+// CSRF token helper for Django
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out;
+    }
+`;
+document.head.appendChild(style);
+</script>
 <style>
 @keyframes twinkle {
     0%, 100% { opacity: 0.2; }
