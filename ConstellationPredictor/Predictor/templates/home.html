@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Constellation Predictor{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+ {% load static %}
+
+<section class="text-center py-20 relative">
+    <div class="max-w-7xl mx-auto px-4">
+        <h1 class="font-orbitron text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
+            Identify Constellations Instantly
+        </h1>
+        <p class="text-lg md:text-xl mb-10 opacity-80 max-w-2xl mx-auto">
+Powered by advanced AI for real-time constellation recognition in the night sky.
+
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-5">
+            <a href="{% url 'upload' %}" class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 font-medium">
+                Upload Image
+            </a>
+            <a href="{% url 'detect' %}" class="px-8 py-3 border border-white/30 rounded-full text-white hover:bg-white/10 transition-all duration-300 font-medium">
+                Start Real-Time Detection
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-16">
+  <div class="max-w-7xl mx-auto px-4">
+    <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-blue-400 mb-12 text-center">
+      How It Works
+    </h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+      <!-- Step 1 -->
+      <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 
+                  hover:-translate-y-2 transition-all duration-300 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-blue-400 
+                    rounded-full flex items-center justify-center text-3xl font-orbitron text-white shadow-md">
+          🔭
+        </div>
+        <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">
+          Choose Prediction Mode
+        </h3>
+        <p class="text-white/80 leading-relaxed">
+          Upload an image or use real-time camera detection to analyze the night sky.
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 
+                  hover:-translate-y-2 transition-all duration-300 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-blue-400 
+                    rounded-full flex items-center justify-center text-3xl font-orbitron text-white shadow-md">
+          🧠
+        </div>
+        <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">
+          AI Analyzes
+        </h3>
+        <p class="text-white/80 leading-relaxed">
+          Our advanced AI model processes your image to identify star patterns and constellations.
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 
+                  hover:-translate-y-2 transition-all duration-300 text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-blue-500 to-blue-400 
+                    rounded-full flex items-center justify-center text-3xl font-orbitron text-white shadow-md">
+          ⭐
+        </div>
+        <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">
+          Get Results
+        </h3>
+        <p class="text-white/80 leading-relaxed">
+          Instant results with labeled constellations and detailed information about each one.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="py-16">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-blue-400 mb-12 text-center">
+            DATABASE
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="flex justify-center">
+  <div class="relative w-80 h-80 md:w-96 md:h-96 border-2 border-blue-400/30 rounded-full bg-gradient-radial from-blue-400/10 to-transparent flex items-center justify-center" id="starChart">
+    <img src="{% static 'image.png' %}" alt="My image" class="w-full h-full object-cover rounded-full" />
+  </div>
+</div>
+
+            
+            <!-- Prediction Info -->
+          <div class="space-y-6">
+    <h3 class="font-orbitron text-2xl md:text-3xl font-semibold text-blue-400">
+        Constellation Database
+    </h3>
+    <div class="space-y-4 text-white/80 leading-relaxed">
+        <p>
+            Browse a complete database of all 88 recognized constellations. Each entry includes mythology, key stars, and the best times to view them in the night sky.
+        </p>
+        <p>
+            Our AI-enhanced charts help you connect star patterns to their constellation names, making stargazing more informative and engaging.
+        </p>
+    </div>
+    <a href="{% url 'database' %}"class="inline-block px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 font-medium">
+        View All 88 Constellations
+    </a>
+</div>
+
+        </div>
+    </div>
+</section>
+
+<!-- Constellation Assistant Section -->
+<section class="py-16 bg-black/20">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-blue-400 mb-6">
+            Ask the Constellation Assistant
+        </h2>
+        <p class="text-lg text-white/80 mb-8">
+            Get detailed information about constellations, their stories, and viewing tips.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto">
+            <input 
+                type="text" 
+                placeholder="Ask about constellations, mythology, or stargazing tips..."
+                class="flex-1 px-6 py-4 border border-white/20 rounded-full bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                id="assistantInput"
+            >
+            <button 
+                type="submit" 
+                class="px-8 py-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 font-medium whitespace-nowrap"
+                id="assistantBtn"
+                onclick="test()"
+            >
+                Ask Assistant
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add stars to the star chart
+    function test(){
+        window.open("{% url 'chatbot' %}", "_self");
+    }
+    function createStars() {
+        const starChart = document.getElementById('starChart');
+        const starPositions = [
+            {x: 150, y: 120}, {x: 200, y: 100}, {x: 250, y: 120},
+            {x: 280, y: 180}, {x: 180, y: 200}, {x: 220, y: 250},
+            {x: 270, y: 280}, {x: 120, y: 160}, {x: 300, y: 200},
+            {x: 160, y: 300}, {x: 240, y: 80}, {x: 320, y: 140}
+        ];
+
+        starPositions.forEach((pos, index) => {
+            const star = document.createElement('div');
+            star.className = 'absolute w-1 h-1 bg-white rounded-full animate-twinkle';
+            star.style.left = pos.x + 'px';
+            star.style.top = pos.y + 'px';
+            star.style.animationDelay = (index * 0.2) + 's';
+            starChart.appendChild(star);
+        });
+    }
+
+    // Assistant functionality
+    const assistantInput = document.getElementById('assistantInput');
+    const assistantBtn = document.getElementById('assistantBtn');
+
+    assistantBtn.addEventListener('click', function() {
+        const question = assistantInput.value.trim();
+
+    });
+
+    assistantInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            assistantBtn.click();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        createStars();
+    });
+</script>
+{% endblock %}  

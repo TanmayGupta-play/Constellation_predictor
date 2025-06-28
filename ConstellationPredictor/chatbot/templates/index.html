@@ -1,0 +1,552 @@
+{% extends 'base.html' %}
+{% block content%}
+    <style>
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .star {
+            animation: twinkle 3s infinite;
+        }
+        
+        .star:nth-child(odd) {
+            animation-delay: 1s;
+        }
+        
+        .star:nth-child(3n) {
+            animation-delay: 2s;
+        }
+        
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        .listening {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(45deg, #60a5fa, #a78bfa, #c084fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .glass {
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+        
+        .chat-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-thumb {
+            background: rgba(147, 112, 219, 0.5);
+            border-radius: 3px;
+        }
+        
+        .chat-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(147, 112, 219, 0.7);
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 text-white overflow-x-hidden">
+    <!-- Starfield Background -->
+    <div class="fixed inset-0 z-0" id="starfield"></div>
+    
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen">
+        <!-- Header -->
+        <header class="text-center py-12 px-6">
+            <div class="glass bg-white bg-opacity-5 rounded-3xl p-8 max-w-4xl mx-auto border border-white border-opacity-10">
+                <h1 class="text-6xl font-bold mb-4 gradient-text floating">
+                    🌟 Constellation AI Assistant
+                </h1>
+                <p class="text-xl text-blue-200 opacity-90">
+                    Your guide to the mysteries of the universe ✨
+                </p>
+            </div>
+        </header>
+        
+        <!-- Chat Interface -->
+        <main class="max-w-4xl mx-auto px-6 pb-12">
+            <div class="glass bg-black bg-opacity-20 rounded-3xl p-8 border border-white border-opacity-10">
+                <!-- Chat Messages Area -->
+                <div id="chatMessages" class="h-96 overflow-y-auto mb-6 space-y-4 chat-scroll rounded-2xl p-4 bg-black bg-opacity-20">
+                    <!-- Welcome Message -->
+                    <div class="flex items-start space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg">
+                            🤖
+                        </div>
+                        <div class="glass bg-blue-900 bg-opacity-30 rounded-2xl rounded-tl-none p-4 max-w-md border border-blue-400 border-opacity-30">
+                            <p class="text-blue-100">
+                                Welcome to the Constellation AI Assistant! 🌌 I'm here to help you explore the wonders of astronomy, constellations, and space. Ask me anything about the night sky! ⭐
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="space-y-4">
+                    <div class="flex space-x-3">
+                        <input 
+                            type="text" 
+                            id="messageInput" 
+                            placeholder="Ask me about constellations, stars, planets..."
+                            class="flex-1 p-4 rounded-2xl glass bg-white bg-opacity-10 border border-white border-opacity-20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent"
+                        >
+                        <button 
+                            id="micBtn"
+                            class="px-4 py-4 glass bg-red-600 bg-opacity-30 rounded-2xl hover:bg-opacity-50 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 border border-red-400 border-opacity-30"
+                            title="Voice Input (English/Hindi)"
+                        >
+                            🎤
+                        </button>
+                        <button 
+                            id="sendBtn"
+                            class="px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        >
+                            🚀 Send
+                        </button>
+                    </div>
+                    
+                    <!-- Controls -->
+                    <div class="flex flex-wrap gap-3 justify-center">
+                        <button 
+                            id="speechToggle"
+                            class="px-4 py-2 glass bg-blue-600 bg-opacity-30 rounded-xl hover:bg-opacity-50 transition-all duration-300 border border-blue-400 border-opacity-30"
+                        >
+                            🔇 Speech: OFF
+                        </button>
+                        
+                        <button 
+                            id="speakBtn"
+                            class="px-4 py-2 glass bg-green-600 bg-opacity-30 rounded-xl hover:bg-opacity-50 transition-all duration-300 border border-green-400 border-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled
+                        >
+                            🔊 Speak Last Response
+                        </button>
+                        
+                        <button 
+                            id="clearBtn"
+                            class="px-4 py-2 glass bg-red-600 bg-opacity-30 rounded-xl hover:bg-opacity-50 transition-all duration-300 border border-red-400 border-opacity-30"
+                        >
+                            🗑️ Clear Chat
+                        </button>
+                        
+                        <select 
+                            id="languageSelect"
+                            class="px-4 py-2 glass bg-white bg-opacity-10 rounded-xl border border-white border-opacity-20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        >
+                            <option value="en" class="bg-gray-800">English 🇺🇸</option>
+                            <option value="hi" class="bg-gray-800">Hindi 🇮🇳</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden mt-4 text-center">
+                    <div class="inline-flex items-center space-x-2 glass bg-white bg-opacity-10 rounded-xl px-4 py-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-400"></div>
+                        <span class="text-purple-200">Consulting the stars...</span>
+                    </div>
+                </div>
+                
+                <!-- Voice Status -->
+                <div id="voiceStatus" class="hidden mt-4 text-center">
+                    <div class="inline-flex items-center space-x-2 glass bg-red-600 bg-opacity-20 rounded-xl px-4 py-2 border border-red-400 border-opacity-30">
+                        <div class="w-3 h-3 bg-red-400 rounded-full listening"></div>
+                        <span class="text-red-200">Recording... Speak now!</span>
+                    </div>
+                </div>
+                
+                <!-- Processing Status -->
+                <div id="processingStatus" class="hidden mt-4 text-center">
+                    <div class="inline-flex items-center space-x-2 glass bg-blue-600 bg-opacity-20 rounded-xl px-4 py-2 border border-blue-400 border-opacity-30">
+                        <div class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-400"></div>
+                        <span class="text-blue-200">Processing your voice...</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Create starfield background
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const numberOfStars = 100;
+            
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star absolute bg-white rounded-full';
+                
+                const size = Math.random() * 3 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                starfield.appendChild(star);
+            }
+        }
+
+        // Global variables
+        let lastAIResponse = '';
+        let speechEnabled = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let isRecording = false;
+        
+        // DOM elements
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+        const speechToggle = document.getElementById('speechToggle');
+        const speakBtn = document.getElementById('speakBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const languageSelect = document.getElementById('languageSelect');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const voiceStatus = document.getElementById('voiceStatus');
+        const processingStatus = document.getElementById('processingStatus');
+
+        // Initialize audio recording
+        async function initAudioRecording() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        sampleRate: 16000,
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true
+                    } 
+                });
+                
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'audio/webm;codecs=opus'
+                });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        audioChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioChunks = [];
+                    await processAudioInput(audioBlob);
+                };
+                
+                return true;
+            } catch (error) {
+                console.error('Failed to initialize audio recording:', error);
+                micBtn.disabled = true;
+                micBtn.title = 'Microphone access denied or not available';
+                return false;
+            }
+        }
+
+        async function processAudioInput(audioBlob) {
+            try {
+                // Show processing status
+                voiceStatus.classList.add('hidden');
+                processingStatus.classList.remove('hidden');
+                micBtn.disabled = true;
+                
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.webm');
+                formData.append('language', languageSelect.value);
+                
+                // Get CSRF token
+                const csrfToken = getCookie('csrftoken');
+                
+                // Send to speech-to-text endpoint
+                const response = await fetch("{% url 'speech_to_text'%}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.transcript) {
+                    // Add voice message to chat
+                    addMessage(`🎤 "${data.transcript}"`, true, true);
+                    
+                    // Set the transcript in the input field
+                    messageInput.value = data.transcript;
+                    
+                    // Automatically send the message
+                    setTimeout(() => sendMessage(), 500);
+                } else {
+                    addMessage('Sorry, I couldn\'t understand your speech. Please try again.');
+                }
+                
+            } catch (error) {
+                console.error('Error processing audio:', error);
+                addMessage('Error processing your voice. Please try again.');
+            } finally {
+                // Hide processing status and re-enable microphone
+                processingStatus.classList.add('hidden');
+                micBtn.disabled = false;
+            }
+        }
+
+        function toggleSpeech() {
+            speechEnabled = !speechEnabled;
+            if (speechEnabled) {
+                speechToggle.innerHTML = '🔊 Speech: ON';
+                speechToggle.classList.remove('bg-blue-600');
+                speechToggle.classList.add('bg-green-600');
+                speechToggle.classList.remove('border-blue-400');
+                speechToggle.classList.add('border-green-400');
+            } else {
+                speechToggle.innerHTML = '🔇 Speech: OFF';
+                speechToggle.classList.remove('bg-green-600');
+                speechToggle.classList.add('bg-blue-600');
+                speechToggle.classList.remove('border-green-400');
+                speechToggle.classList.add('border-blue-400');
+            }
+        }
+
+        async function startRecording() {
+            if (!mediaRecorder) {
+                const initialized = await initAudioRecording();
+                if (!initialized) return;
+            }
+            
+            if (isRecording) {
+                // Stop recording
+                mediaRecorder.stop();
+                isRecording = false;
+                voiceStatus.classList.add('hidden');
+                micBtn.innerHTML = '🎤';
+                micBtn.classList.remove('listening');
+            } else {
+                // Start recording
+                audioChunks = [];
+                mediaRecorder.start();
+                isRecording = true;
+                voiceStatus.classList.remove('hidden');
+                micBtn.innerHTML = '🔴';
+                micBtn.classList.add('listening');
+                
+                // Auto-stop after 30 seconds
+                setTimeout(() => {
+                    if (isRecording) {
+                        mediaRecorder.stop();
+                        isRecording = false;
+                        voiceStatus.classList.add('hidden');
+                        micBtn.innerHTML = '🎤';
+                        micBtn.classList.remove('listening');
+                    }
+                }, 30000);
+            }
+        }
+
+        function addMessage(content, isUser = false, isVoice = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start space-x-3';
+            
+            if (isUser) {
+                messageDiv.className += ' justify-end';
+                const iconClass = isVoice ? '🎤' : '👤';
+                const bgClass = isVoice ? 'bg-gradient-to-r from-red-500 to-pink-500' : 'bg-gradient-to-r from-purple-500 to-pink-500';
+                messageDiv.innerHTML = `
+                    <div class="glass bg-purple-900 bg-opacity-40 rounded-2xl rounded-tr-none p-4 max-w-md border border-purple-400 border-opacity-30">
+                        <p class="text-purple-100">${content}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full ${bgClass} flex items-center justify-center text-lg">
+                        ${iconClass}
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg">
+                        🤖
+                    </div>
+                    <div class="glass bg-blue-900 bg-opacity-30 rounded-2xl rounded-tl-none p-4 max-w-md border border-blue-400 border-opacity-30">
+                        <p class="text-blue-100">${content}</p>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showLoading(show) {
+            loadingIndicator.classList.toggle('hidden', !show);
+            sendBtn.disabled = show;
+            messageInput.disabled = show;
+            if (!isRecording) {
+                micBtn.disabled = show;
+            }
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Only add text message if it wasn't already added by voice input
+            if (!message.startsWith('🎤')) {
+                addMessage(message, true);
+            }
+            messageInput.value = '';
+            showLoading(true);
+
+            try {
+                // Get CSRF token
+                const csrfToken = getCookie('csrftoken');
+                
+                const response = await fetch("{% url 'ask_ai'%}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ 
+                        message: message.replace('🎤 "', '').replace('"', '') // Clean voice input formatting
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    lastAIResponse = data.reply;
+                    addMessage(data.reply);
+                    speakBtn.disabled = false;
+                    
+                    // Auto-speak if speech is enabled
+                    if (speechEnabled) {
+                        setTimeout(() => speakText(), 500);
+                    }
+                } else {
+                    addMessage('Sorry, I encountered an error: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                addMessage('Connection error. Please try again.');
+                console.error('Error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function speakText() {
+            if (!lastAIResponse || !speechEnabled) return;
+
+            speakBtn.disabled = true;
+            speakBtn.innerHTML = '🔄 Speaking...';
+
+            try {
+                // Get CSRF token
+                const csrfToken = getCookie('csrftoken');
+                
+                const response = await fetch("{% url 'text_to_speech'%}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({
+                        text: lastAIResponse,
+                        language: languageSelect.value
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    const audio = new Audio('data:audio/mp3;base64,' + data.audio_data);
+                    audio.play();
+                    
+                    audio.onended = () => {
+                        speakBtn.disabled = false;
+                        speakBtn.innerHTML = '🔊 Speak Last Response';
+                    };
+                } else {
+                    throw new Error(data.error || 'Failed to generate speech');
+                }
+            } catch (error) {
+                console.error('Speech synthesis failed:', error);
+                addMessage('Sorry, speech synthesis failed.');
+                speakBtn.disabled = false;
+                speakBtn.innerHTML = '🔊 Speak Last Response';
+            }
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        function clearChat() {
+            messagesContainer.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-lg">
+                        🤖
+                    </div>
+                    <div class="glass bg-blue-900 bg-opacity-30 rounded-2xl rounded-tl-none p-4 max-w-md border border-blue-400 border-opacity-30">
+                        <p class="text-blue-100">
+                            Welcome back! 🌌 I'm ready to help you explore the cosmos again. What would you like to know about the stars? ⭐
+                        </p>
+                    </div>
+                </div>
+            `;
+            lastAIResponse = '';
+            speakBtn.disabled = true;
+        }
+
+        // Event listeners
+        sendBtn.addEventListener('click', sendMessage);
+        micBtn.addEventListener('click', startRecording);
+        speechToggle.addEventListener('click', toggleSpeech);
+        speakBtn.addEventListener('click', speakText);
+        clearBtn.addEventListener('click', clearChat);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendMessage();
+            }
+        });
+
+        // Initialize
+        createStarfield();
+        
+        // Auto-focus input
+        messageInput.focus();
+    </script>
+{% endblock %}

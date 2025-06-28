@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Predict Constellations{% endblock %}
+
+{% block content %}
+<section id="predict" class="max-w-5xl mx-auto px-4 py-20 text-center">
+    <h2 class="text-3xl md:text-4xl font-orbitron font-bold text-blue-400 mb-6">
+        Predict Constellations
+    </h2>
+    <p class="text-white/80 max-w-2xl mx-auto mb-10 leading-relaxed">
+        Choose how you want to explore the stars. Upload a night sky image or use your camera for live constellation detection.
+    </p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
+        <a href="{% url 'upload' %}" class="block bg-white/5 border border-white/10 rounded-2xl p-6 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-1 transition-all duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">Upload Image</h3>
+            <p class="text-white/70">Navigate to the image upload page where you can select a night sky photo to analyze and identify constellations.</p>
+        </a>
+
+        <a href="{% url 'detect' %}" class="block bg-white/5 border border-white/10 rounded-2xl p-6 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-1 transition-all duration-300">
+            <h3 class="text-xl font-semibold text-white mb-4">Real-Time Detection</h3>
+            <p class="text-white/70">Start real-time sky scanning using your device's camera and instantly detect visible constellations.</p>
+        </a>
+    </div>
+</section>
+{% endblock %}

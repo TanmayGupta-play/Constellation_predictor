@@ -1,0 +1,890 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Constellation Predictor{% endblock %}
+
+{% block content %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&display=swap');
+        
+        .font-orbitron {
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* Mobile-first responsive design */
+        html, body {
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Animated Stars Background */
+        .stars {
+            background: transparent url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="25" cy="25" r="1" fill="white" opacity="0.8"/><circle cx="75" cy="75" r="0.5" fill="white" opacity="0.6"/><circle cx="15" cy="75" r="0.8" fill="white" opacity="0.4"/><circle cx="85" cy="25" r="0.6" fill="white" opacity="0.7"/><circle cx="50" cy="50" r="0.4" fill="white" opacity="0.5"/></svg>') repeat;
+            animation: move-stars 60s linear infinite;
+        }
+
+        .twinkling {
+            background: transparent url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><circle cx="50" cy="50" r="1" fill="white" opacity="0.3"><animate attributeName="opacity" values="0.3;1;0.3" dur="3s" repeatCount="indefinite"/></circle><circle cx="150" cy="150" r="0.8" fill="white" opacity="0.5"><animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite"/></circle><circle cx="30" cy="150" r="0.6" fill="white" opacity="0.4"><animate attributeName="opacity" values="0.4;0.8;0.4" dur="4s" repeatCount="indefinite"/></circle></svg>') repeat;
+            animation: move-twinkle 100s linear infinite;
+        }
+
+        @keyframes move-stars {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-100px); }
+        }
+
+        @keyframes move-twinkle {
+            from { transform: translateY(0px); }
+            to { transform: translateY(-200px); }
+        }
+
+        /* Status Animations */
+        .status-content {
+            transition: all 0.3s ease;
+        }
+
+        .status-error {
+            background: rgba(239, 68, 68, 0.1) !important;
+            border-color: rgba(239, 68, 68, 0.3) !important;
+            color: #fca5a5 !important;
+        }
+
+        .status-success {
+            background: rgba(34, 197, 94, 0.1) !important;
+            border-color: rgba(34, 197, 94, 0.3) !important;
+            color: #86efac !important;
+        }
+
+        .status-info {
+            background: rgba(59, 130, 246, 0.1) !important;
+            border-color: rgba(59, 130, 246, 0.3) !important;
+            color: #93c5fd !important;
+        }
+
+        /* Mobile touch improvements */
+        .mobile-button {
+            min-height: 44px;
+            min-width: 44px;
+            touch-action: manipulation;
+        }
+
+        /* Video container improvements for mobile */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 75%; /* 4:3 aspect ratio for mobile */
+        }
+
+        @media (min-width: 768px) {
+            .video-container {
+                padding-bottom: 56.25%; /* 16:9 aspect ratio for desktop */
+            }
+        }
+
+        .video-container video,
+        .video-container img,
+        .video-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Hide scrollbar but keep functionality */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 2px;
+        }
+
+        /* Fullscreen mode styles */
+        .fullscreen-controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-active {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999 !important;
+            background: black !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        <!-- Animated Background Stars -->
+        <div class="fixed inset-0 overflow-hidden pointer-events-none">
+            <div class="stars absolute inset-0"></div>
+            <div class="twinkling absolute inset-0"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="relative z-10 max-w-6xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
+            <!-- Header Section -->
+            <div class="text-center mb-6 sm:mb-12">
+                <h1 class="font-orbitron text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-6 bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
+                    Real-Time Constellation Detection
+                </h1>
+                <p class="text-sm sm:text-lg md:text-xl text-white/80 max-w-3xl mx-auto px-2">
+                    Point your camera at the night sky and let our AI identify constellations in real-time using advanced YOLOv8 technology.
+                </p>
+            </div>
+
+            <!-- Status Display -->
+            <div id="status" class="mb-4 sm:mb-8 p-3 sm:p-4 rounded-2xl backdrop-blur-sm border border-white/10 bg-white/5 text-center">
+                <div class="status-content flex items-center justify-center space-x-3">
+                    <div class="status-icon text-lg sm:text-xl">🔭</div>
+                    <span class="font-medium text-blue-400 text-sm sm:text-base">Click "Start Camera" to begin constellation detection</span>
+                </div>
+            </div>
+
+            <!-- Video/Detection Container -->
+            <div class="mb-4 sm:mb-8">
+                <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-3 sm:p-6 md:p-8">
+                    <div id="videoContainer" class="video-container bg-black/50 rounded-xl sm:rounded-2xl overflow-hidden border-2 border-white/20">
+                        <!-- Video Element -->
+                        <video 
+                            id="video" 
+                            autoplay 
+                            playsinline 
+                            muted
+                            class="w-full h-full object-cover"
+                            style="display:none;"
+                        ></video>
+                        
+                        <!-- Canvas (Hidden) -->
+                        <canvas 
+                            id="canvas" 
+                            width="640" 
+                            height="480" 
+                            class="hidden"
+                        ></canvas>
+                        
+                        <!-- Result Image -->
+                        <img 
+                            id="result" 
+                            class="w-full h-full object-cover"
+                            style="display:none;"
+                            alt="Detection results will appear here"
+                        />
+                        
+                        <!-- Placeholder Content -->
+                        <div id="placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white/60 p-4">
+                            <div class="text-4xl sm:text-6xl mb-2 sm:mb-4">🌌</div>
+                            <h3 class="text-lg sm:text-xl font-orbitron font-semibold mb-2">Camera Preview</h3>
+                            <p class="text-center max-w-sm text-sm sm:text-base">Your camera feed will appear here. Point towards the night sky for best results.</p>
+                        </div>
+
+                        <!-- Fullscreen Toggle -->
+                        <button 
+                            id="fullscreenToggle"
+                            class="absolute top-3 right-3 bg-black/50 text-white p-2 rounded-full backdrop-blur-sm hover:bg-black/70 transition-all"
+                            style="display:none;"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-8">
+                <h2 class="font-orbitron text-xl sm:text-2xl font-bold text-blue-400 mb-4 sm:mb-6 text-center">Detection Controls</h2>
+                
+                <!-- Primary Controls -->
+                <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4 mb-4">
+                    <!-- Start Camera Button -->
+                    <button 
+                        id="startCamera"
+                        class="mobile-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white font-medium hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <span>📹</span>
+                        <span>Start Camera</span>
+                    </button>
+                    
+                    <!-- Camera Switch Button -->
+                    <button 
+                        id="switchCamera"
+                        disabled
+                        class="mobile-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-green-500 to-green-400 rounded-full text-white font-medium hover:-translate-y-1 hover:shadow-lg hover:shadow-green-500/40 transition-all duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                    >
+                        <span>🔄</span>
+                        <span>Switch Camera</span>
+                    </button>
+                </div>
+
+                <!-- Secondary Controls -->
+                <div class="flex flex-col sm:flex-row sm:flex-wrap justify-center gap-3 sm:gap-4">
+                    <!-- Start Detection Button -->
+                    <button 
+                        id="startDetection"
+                        disabled
+                        class="mobile-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-purple-500 to-purple-400 rounded-full text-white font-medium hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/40 transition-all duration-300 flex items-center justify-center space-x-2 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none"
+                    >
+                        <span>🔍</span>
+                        <span>Start Detection</span>
+                    </button>
+                    
+                    <!-- Stop Detection Button -->
+                    <button 
+                        id="stopDetection"
+                        disabled
+                        class="mobile-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-white/30 rounded-full text-white font-medium hover:bg-white/10 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <span>⏸️</span>
+                        <span>Stop Detection</span>
+                    </button>
+                    
+                    <!-- Troubleshooting Button -->
+                    <button 
+                        id="showTroubleshooting"
+                        class="mobile-button w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 border border-orange-400/50 text-orange-400 rounded-full font-medium hover:bg-orange-400/10 transition-all duration-300 flex items-center justify-center space-x-2"
+                    >
+                        <span>🛠️</span>
+                        <span>Help</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Troubleshooting Panel -->
+            <div 
+                id="troubleshooting" 
+                class="bg-orange-900/20 backdrop-blur-sm border border-orange-400/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-8" 
+                style="display:none;"
+            >
+                <h3 class="font-orbitron text-xl sm:text-2xl font-bold text-orange-400 mb-4 sm:mb-6 flex items-center">
+                    <span class="mr-3">🛠️</span>
+                    Camera Troubleshooting Guide
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">1</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">HTTPS Required</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">Camera access requires HTTPS or localhost. Try accessing via <code class="bg-black/30 px-1 sm:px-2 py-1 rounded text-xs">https://</code> or <code class="bg-black/30 px-1 sm:px-2 py-1 rounded text-xs">localhost</code></p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">2</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">Mobile Browsers</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">Use Chrome, Firefox, Safari, or Samsung Internet on mobile devices</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">3</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">Camera Permissions</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">Allow camera access when prompted. Check browser settings if blocked.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-3 sm:space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">4</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">Camera in Use</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">Close other apps using your camera (video calls, camera app, etc.)</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">5</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">Mobile Tips</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">Rotate device, try different cameras, or restart your browser</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <div class="w-6 h-6 bg-orange-400 rounded-full flex items-center justify-center text-white text-sm font-bold mt-1 flex-shrink-0">6</div>
+                            <div>
+                                <h4 class="font-semibold text-orange-300 mb-1 text-sm sm:text-base">iOS Safari</h4>
+                                <p class="text-white/70 text-xs sm:text-sm">For iPhone/iPad, use Safari browser for best camera support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-black/30 rounded-xl sm:rounded-2xl p-3 sm:p-4 space-y-2 text-xs sm:text-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                        <span class="text-orange-400 font-semibold">Current URL:</span>
+                        <code id="currentUrl" class="text-white/80 bg-black/50 px-2 py-1 rounded break-all"></code>
+                    </div>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-2">
+                        <span class="text-orange-400 font-semibold">Device:</span>
+                        <code id="deviceInfo" class="text-white/80 bg-black/50 px-2 py-1 rounded break-all"></code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detection Tips -->
+            <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8">
+                <h2 class="font-orbitron text-xl sm:text-2xl font-bold text-blue-400 mb-4 sm:mb-6 text-center flex items-center justify-center">
+                    <span class="mr-3">💡</span>
+                    Detection Tips for Best Results
+                </h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div class="text-center p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10">
+                        <div class="text-2xl sm:text-3xl mb-2 sm:mb-3">🌙</div>
+                        <h3 class="font-orbitron font-semibold text-blue-300 mb-2 text-sm sm:text-base">Dark Sky</h3>
+                        <p class="text-white/70 text-xs sm:text-sm">Use in low-light conditions or at night for best constellation visibility</p>
+                    </div>
+                    
+                    <div class="text-center p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10">
+                        <div class="text-2xl sm:text-3xl mb-2 sm:mb-3">📱</div>
+                        <h3 class="font-orbitron font-semibold text-blue-300 mb-2 text-sm sm:text-base">Steady Hold</h3>
+                        <p class="text-white/70 text-xs sm:text-sm">Keep your device steady for accurate detection and clearer results</p>
+                    </div>
+                    
+                    <div class="text-center p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-white/10 sm:col-span-2 lg:col-span-1">
+                        <div class="text-2xl sm:text-3xl mb-2 sm:mb-3">⭐</div>
+                        <h3 class="font-orbitron font-semibold text-blue-300 mb-2 text-sm sm:text-base">Clear View</h3>
+                        <p class="text-white/70 text-xs sm:text-sm">Ensure a clear view of the sky without obstructions like clouds or buildings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Controls (shown only in fullscreen mode) -->
+        <div id="fullscreenControls" class="fullscreen-controls" style="display:none;">
+            <button id="fullscreenStartDetection" class="mobile-button px-4 py-2 bg-purple-500 rounded-full text-white text-sm">
+                🔍 Detect
+            </button>
+            <button id="fullscreenStopDetection" class="mobile-button px-4 py-2 border border-white/30 rounded-full text-white text-sm">
+                ⏸️ Stop
+            </button>
+            <button id="fullscreenSwitchCamera" class="mobile-button px-4 py-2 bg-green-500 rounded-full text-white text-sm">
+                🔄 Switch
+            </button>
+            <button id="exitFullscreen" class="mobile-button px-4 py-2 bg-red-500 rounded-full text-white text-sm">
+                ❌ Exit
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const resultImg = document.getElementById('result');
+        const placeholder = document.getElementById('placeholder');
+        const videoContainer = document.getElementById('videoContainer');
+        const startCameraBtn = document.getElementById('startCamera');
+        const switchCameraBtn = document.getElementById('switchCamera');
+        const startDetectionBtn = document.getElementById('startDetection');
+        const stopDetectionBtn = document.getElementById('stopDetection');
+        const showTroubleshootingBtn = document.getElementById('showTroubleshooting');
+        const fullscreenToggle = document.getElementById('fullscreenToggle');
+        const fullscreenControls = document.getElementById('fullscreenControls');
+        const statusDiv = document.getElementById('status');
+        const troubleshootingDiv = document.getElementById('troubleshooting');
+        const ctx = canvas.getContext('2d');
+        
+        let streaming = false;
+        let cameraStream = null;
+        let detectionActive = false;
+        let currentFacingMode = 'environment'; // Start with back camera
+        let availableCameras = [];
+        let currentCameraIndex = 0;
+        let isFullscreen = false;
+
+        // Mobile device detection
+        function isMobile() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // Update status with better mobile UX
+        function updateStatus(message, type = 'info', icon = '🔭') {
+            const statusContent = statusDiv.querySelector('.status-content');
+            const statusIcon = statusContent.querySelector('.status-icon');
+            const statusText = statusContent.querySelector('span');
+            
+            statusIcon.textContent = icon;
+            statusText.textContent = message;
+            
+            // Remove all status classes
+            statusDiv.className = 'mb-4 sm:mb-8 p-3 sm:p-4 rounded-2xl backdrop-blur-sm border border-white/10 bg-white/5 text-center';
+            
+            // Add specific status class
+            if (type === 'error') {
+                statusDiv.classList.add('status-error');
+            } else if (type === 'success') {
+                statusDiv.classList.add('status-success');
+            } else {
+                statusDiv.classList.add('status-info');
+            }
+        }
+
+        // Get available cameras
+        async function getAvailableCameras() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                availableCameras = devices.filter(device => device.kind === 'videoinput');
+                
+                console.log('Available cameras:', availableCameras.length);
+                
+                if (availableCameras.length > 1) {
+                    switchCameraBtn.style.display = 'flex';
+                }
+                
+                return availableCameras;
+            } catch (err) {
+                console.error('Error getting camera list:', err);
+                return [];
+            }
+        }
+
+        // Enhanced browser compatibility check
+        function checkBrowserSupport() {
+            const isSecureContext = window.isSecureContext || location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+            
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                updateStatus('Camera access not supported in this browser. Please use a modern browser.', 'error', '❌');
+                startCameraBtn.disabled = true;
+                showTroubleshootingInfo();
+                return false;
+            }
+            
+            if (!isSecureContext) {
+                updateStatus('Camera requires HTTPS or localhost. Please use https:// or localhost.', 'error', '🔒');
+                startCameraBtn.disabled = true;
+                showTroubleshootingInfo();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function showTroubleshootingInfo() {
+            troubleshootingDiv.style.display = 'block';
+            document.getElementById('currentUrl').textContent = window.location.href;
+            
+            const deviceInfo = {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                mobile: isMobile() ? 'Yes' : 'No',
+                touchScreen: 'ontouchstart' in window ? 'Yes' : 'No'
+            };
+            
+            document.getElementById('deviceInfo').textContent = 
+                `${deviceInfo.platform} | Mobile: ${deviceInfo.mobile} | Touch: ${deviceInfo.touchScreen}`;
+        }
+
+        // Get camera constraints based on device and preference
+        function getCameraConstraints() {
+            const constraints = {
+                video: {
+                    width: { ideal: isMobile() ? 720 : 1280 },
+                    height: { ideal: isMobile() ? 960 : 720 },
+                }
+            };
+
+            if (availableCameras.length > 0) {
+                // Use specific camera device
+                constraints.video.deviceId = { exact: availableCameras[currentCameraIndex].deviceId };
+            } else {
+                // Fallback to facingMode
+                constraints.video.facingMode = currentFacingMode;
+            }
+
+            return constraints;
+        }
+
+        // Start camera function with mobile optimizations
+        async function startCamera() {
+            try {
+                updateStatus('Starting camera...', 'info', '📹');
+                
+                // Get available cameras first
+                await getAvailableCameras();
+                
+                const constraints = getCameraConstraints();
+                console.log('Camera constraints:', constraints);
+                
+                // Stop existing stream if any
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = cameraStream;
+                
+                video.onloadedmetadata = () => {
+                    video.play().then(() => {
+                        streaming = true;
+                        video.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        fullscreenToggle.style.display = 'block';
+                        
+                        startCameraBtn.disabled = true;
+                        startDetectionBtn.disabled = false;
+                        switchCameraBtn.disabled = false;
+                        
+                        const cameraName = availableCameras.length > 0 ? 
+                            (availableCameras[currentCameraIndex].label || `Camera ${currentCameraIndex + 1}`) : 
+                            (currentFacingMode === 'environment' ? 'Back Camera' : 'Front Camera');
+                        
+                        updateStatus(`Camera started: ${cameraName}. Point at the night sky and start detection.`, 'success', '✅');
+                    }).catch(err => {
+                        updateStatus(`Error playing video: ${err.message}`, 'error', '❌');
+                    });
+                };
+                
+            } catch (err) {
+                console.error("Error accessing webcam:", err);
+                let errorMessage = 'Camera access failed: ';
+                let icon = '❌';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Permission denied. Please allow camera access and try again.';
+                    icon = '🚫';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                    icon = '📷';
+                } else if (err.name === 'NotReadableError') {
+                    errorMessage += 'Camera is being used by another app. Please close other camera apps.';
+                    icon = '🔒';
+                } else if (err.name === 'OverconstrainedError') {
+                    errorMessage += 'Camera constraints not supported. Trying fallback...';
+                    icon = '⚠️';
+                    // Try with basic constraints
+                    setTimeout(() => startCameraFallback(), 1000);
+                } else {
+                    errorMessage += err.message;
+                }
+                
+                updateStatus(errorMessage, 'error', icon);
+            }
+        }
+
+        // Fallback camera start with basic constraints
+        async function startCameraFallback() {
+            try {
+                updateStatus('Trying basic camera access...', 'info', '📹');
+                
+                const basicConstraints = {
+                    video: true
+                };
+                
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                
+                cameraStream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+                video.srcObject = cameraStream;
+                
+                video.onloadedmetadata = () => {
+                    video.play().then(() => {
+                        streaming = true;
+                        video.style.display = 'block';
+                        placeholder.style.display = 'none';
+                        fullscreenToggle.style.display = 'block';
+                        
+                        startCameraBtn.disabled = true;
+                        startDetectionBtn.disabled = false;
+                        
+                        updateStatus('Camera started with basic settings. Ready for detection.', 'success', '✅');
+                    });
+                };
+                
+            } catch (err) {
+                updateStatus('Unable to access any camera. Please check permissions and try again.', 'error', '❌');
+                showTroubleshootingInfo();
+            }
+        }
+
+        // Switch camera function
+        async function switchCamera() {
+            if (availableCameras.length <= 1) {
+                // Fallback to facingMode switching
+                currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+            } else {
+                currentCameraIndex = (currentCameraIndex + 1) % availableCameras.length;
+            }
+            
+            updateStatus('Switching camera...', 'info', '🔄');
+            await startCamera();
+        }
+
+        // Detection loop function with mobile optimizations
+        function detectLoop() {
+            if (!detectionActive || !streaming) return;
+            
+            try {
+                // Adjust canvas size based on video dimensions
+                const videoWidth = video.videoWidth || 640;
+                const videoHeight = video.videoHeight || 480;
+                
+                canvas.width = videoWidth;
+                canvas.height = videoHeight;
+                
+                ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+                
+                canvas.toBlob(blob => {
+                    if (!blob || !detectionActive) return;
+                    
+                    const formData = new FormData();
+                    formData.append('frame', blob, 'frame.jpg');
+                    
+                    fetch('/detect/process/', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.blob();
+                    })
+                    .then(imageBlob => {
+                        if (detectionActive) {
+                            resultImg.src = URL.createObjectURL(imageBlob);
+                            resultImg.style.display = 'block';
+                            video.style.display = 'none';
+                            
+                            // Continue detection loop
+                            setTimeout(() => {
+                                if (detectionActive) {
+                                    requestAnimationFrame(detectLoop);
+                                }
+                            }, 500); // Reduced frequency for mobile performance
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Detection error:', err);
+                        updateStatus(`Detection error: ${err.message}`, 'error', '⚠️');
+                        stopDetection();
+                    });
+                }, 'image/jpeg', 0.7); // Reduced quality for mobile performance
+                
+            } catch (err) {
+                console.error('Canvas error:', err);
+                updateStatus(`Canvas error: ${err.message}`, 'error', '⚠️');
+                stopDetection();
+            }
+        }
+
+        function startDetection() {
+            if (!streaming) {
+                updateStatus('Camera not started yet!', 'error', '❌');
+                return;
+            }
+            
+            detectionActive = true;
+            startDetectionBtn.disabled = true;
+            stopDetectionBtn.disabled = false;
+            
+            // Update fullscreen controls
+            document.getElementById('fullscreenStartDetection').disabled = true;
+            document.getElementById('fullscreenStopDetection').disabled = false;
+            
+            updateStatus('AI is analyzing the night sky for constellations...', 'info', '🔍');
+            detectLoop();
+        }
+
+        function stopDetection() {
+            detectionActive = false;
+            startDetectionBtn.disabled = false;
+            stopDetectionBtn.disabled = true;
+            
+            // Update fullscreen controls
+            document.getElementById('fullscreenStartDetection').disabled = false;
+            document.getElementById('fullscreenStopDetection').disabled = true;
+            
+            resultImg.style.display = 'none';
+            video.style.display = 'block';
+            updateStatus('Detection stopped. Camera is still active.', 'info', '⏸️');
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            streaming = false;
+            detectionActive = false;
+            video.style.display = 'none';
+            resultImg.style.display = 'none';
+            placeholder.style.display = 'flex';
+            fullscreenToggle.style.display = 'none';
+            
+            startCameraBtn.disabled = false;
+            startDetectionBtn.disabled = true;
+            stopDetectionBtn.disabled = true;
+            switchCameraBtn.disabled = true;
+            
+            updateStatus('Camera stopped', 'info', '📷');
+        }
+
+        // Fullscreen functionality
+        function toggleFullscreen() {
+            if (!isFullscreen) {
+                enterFullscreen();
+            } else {
+                exitFullscreen();
+            }
+        }
+
+        function enterFullscreen() {
+            videoContainer.classList.add('fullscreen-active');
+            fullscreenControls.style.display = 'flex';
+            fullscreenToggle.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            `;
+            isFullscreen = true;
+            
+            // Lock orientation on mobile if available
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {
+                    // Orientation lock not supported or failed
+                });
+            }
+        }
+
+        function exitFullscreen() {
+            videoContainer.classList.remove('fullscreen-active');
+            fullscreenControls.style.display = 'none';
+            fullscreenToggle.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                </svg>
+            `;
+            isFullscreen = false;
+            
+            // Unlock orientation
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        }
+
+        // Event listeners
+        startCameraBtn.addEventListener('click', startCamera);
+        switchCameraBtn.addEventListener('click', switchCamera);
+        startDetectionBtn.addEventListener('click', startDetection);
+        stopDetectionBtn.addEventListener('click', stopDetection);
+        fullscreenToggle.addEventListener('click', toggleFullscreen);
+        
+        // Fullscreen controls
+        document.getElementById('fullscreenStartDetection').addEventListener('click', startDetection);
+        document.getElementById('fullscreenStopDetection').addEventListener('click', stopDetection);
+        document.getElementById('fullscreenSwitchCamera').addEventListener('click', switchCamera);
+        document.getElementById('exitFullscreen').addEventListener('click', exitFullscreen);
+        
+        showTroubleshootingBtn.addEventListener('click', () => {
+            const isVisible = troubleshootingDiv.style.display !== 'none';
+            troubleshootingDiv.style.display = isVisible ? 'none' : 'block';
+            if (!isVisible) {
+                showTroubleshootingInfo();
+            }
+        });
+
+        // Mobile-specific event handlers
+        if (isMobile()) {
+            // Prevent zoom on double tap
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function (event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+            
+            // Handle orientation changes
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    if (streaming && video.videoWidth && video.videoHeight) {
+                        // Adjust video display after orientation change
+                        video.style.width = '100%';
+                        video.style.height = '100%';
+                    }
+                }, 500);
+            });
+            
+            // Handle visibility changes (app switching)
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden && detectionActive) {
+                    // Pause detection when app goes to background
+                    stopDetection();
+                    updateStatus('Detection paused - app in background', 'info', '⏸️');
+                }
+            });
+        }
+
+        // Keyboard shortcuts for desktop
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'f' || e.key === 'F') {
+                if (streaming) {
+                    toggleFullscreen();
+                }
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                if (streaming && !detectionActive) {
+                    startDetection();
+                } else if (detectionActive) {
+                    stopDetection();
+                }
+            } else if (e.key === 'c' || e.key === 'C') {
+                if (streaming && availableCameras.length > 1) {
+                    switchCamera();
+                }
+            }
+        });
+
+        // Cleanup when page is unloaded
+        window.addEventListener('beforeunload', stopCamera);
+        
+        // Initialize
+        if (checkBrowserSupport()) {
+            if (isMobile()) {
+                updateStatus('Mobile device detected. Tap "Start Camera" to begin.', 'info', '📱');
+            }
+            
+            // Get available cameras on load
+            getAvailableCameras();
+        } else {
+            console.log('Browser details:', {
+                userAgent: navigator.userAgent,
+                protocol: location.protocol,
+                hostname: location.hostname,
+                isSecureContext: window.isSecureContext,
+                hasMediaDevices: !!navigator.mediaDevices,
+                hasGetUserMedia: !!navigator.mediaDevices?.getUserMedia,
+                mobile: isMobile()
+            });
+        }
+    </script>
+{% endblock %}  

@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Image - Constellation Predictor{% endblock %}
+
+{% block content %}
+{% load static %}
+
+<!-- Hero Section -->
+<section class="text-center py-20 relative">
+    <div class="max-w-7xl mx-auto px-4">
+        <h1 class="font-orbitron text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
+            Upload Your Night Sky Image
+        </h1>
+        <p class="text-lg md:text-xl mb-10 opacity-80 max-w-2xl mx-auto">
+            Upload a photo of the night sky and let our AI identify constellations for you.
+        </p>
+    </div>
+</section>
+
+<!-- Upload Section -->
+<section class="py-16">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white/5 rounded-3xl backdrop-blur-sm border border-white/10 p-8 md:p-12">
+            <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'process_upload' %}">
+                {% csrf_token %}
+                
+                <!-- Upload Area -->
+                <div class="mb-12">
+                    <div id="dropZone" class="relative border-2 border-dashed border-blue-400/50 rounded-2xl p-12 text-center hover:border-blue-400 transition-all duration-300 cursor-pointer group">
+                        <div id="uploadContent" class="space-y-6">
+                            <div class="w-24 h-24 mx-auto bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center text-4xl group-hover:scale-110 transition-transform duration-300">
+                                📤
+                            </div>
+                            <div>
+                                <h3 class="font-orbitron text-2xl font-semibold text-blue-400 mb-4">
+                                    Drop your image here or click to browse
+                                </h3>
+                                <p class="text-white/80 mb-4">
+                                    Supported formats: JPG, PNG, JPEG (Max size: 10MB)
+                                </p>
+                                <button type="button" class="px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 font-medium">
+                                    Choose File
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview Area (Hidden by default) -->
+                        <div id="previewArea" class="hidden space-y-6">
+                            <div class="relative inline-block">
+                                <img id="previewImage" class="max-w-full max-h-80 rounded-xl border border-white/20" />
+                                <button type="button" id="removeImage" class="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white hover:bg-red-600 transition-colors">
+                                    ✕
+                                </button>
+                            </div>
+                            <div>
+                                <p id="fileName" class="text-blue-400 font-medium mb-2"></p>
+                                <p id="fileSize" class="text-white/60 text-sm"></p>
+                            </div>
+                        </div>
+                        
+                        <input type="file" id="fileInput" name="image" accept=".jpg,.jpeg,.png" class="hidden" required>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" id="submitBtn" disabled class="px-12 py-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full text-white hover:-translate-y-0.5 hover:shadow-lg hover:shadow-blue-500/40 transition-all duration-300 font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
+                        <span id="submitText">Select an image first</span>
+                        <span id="loadingSpinner" class="hidden ml-2">
+                            <svg class="animate-spin h-5 w-5 inline" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Tips Section -->
+<section class="py-16 bg-black/20">
+    <div class="max-w-6xl mx-auto px-4">
+        <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-blue-400 mb-12 text-center">
+            Tips for Better Results
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    🌙
+                </div>
+                <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">Clear Night Sky</h3>
+                <p class="text-white/80">Choose images with minimal cloud cover and good visibility of stars.</p>
+            </div>
+            
+            <div class="p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    📷
+                </div>
+                <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">High Quality</h3>
+                <p class="text-white/80">Use high-resolution images for better constellation detection accuracy.</p>
+            </div>
+            
+            <div class="p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 text-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
+                    🌟
+                </div>
+                <h3 class="font-orbitron text-xl font-semibold text-blue-400 mb-3">Star Patterns</h3>
+                <p class="text-white/80">Include recognizable star patterns and avoid overly zoomed images.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section class="py-16">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+        <h3 class="font-orbitron text-2xl font-semibold text-blue-400 mb-8">
+            Or try another detection method
+        </h3>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="{% url 'detect' %}" class="px-8 py-3 border border-white/30 rounded-full text-white hover:bg-white/10 transition-all duration-300 font-medium">
+                Real-Time Camera Detection
+            </a>
+            <a href="{% url 'database' %}" class="px-8 py-3 border border-white/30 rounded-full text-white hover:bg-white/10 transition-all duration-300 font-medium">
+                Browse Constellation Database
+            </a>
+            <a href="{% url 'home' %}" class="px-8 py-3 border border-white/30 rounded-full text-white hover:bg-white/10 transition-all duration-300 font-medium">
+                Back to Home
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadContent = document.getElementById('uploadContent');
+    const previewArea = document.getElementById('previewArea');
+    const previewImage = document.getElementById('previewImage');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    const removeImage = document.getElementById('removeImage');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Click to browse
+    dropZone.addEventListener('click', () => {
+        if (!previewArea.classList.contains('hidden')) return;
+        fileInput.click();
+    });
+
+    // Drag and drop functionality
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-400', 'bg-blue-400/10');
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400', 'bg-blue-400/10');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400', 'bg-blue-400/10');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            handleFile(files[0]);
+        }
+    });
+
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFile(e.target.files[0]);
+        }
+    });
+
+    // Handle file selection
+    function handleFile(file) {
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPG, JPEG, or PNG)');
+            return;
+        }
+
+        // Validate file size (10MB limit)
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        if (file.size > maxSize) {
+            alert('File size must be less than 10MB');
+            return;
+        }
+
+        // Create file reader
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            fileName.textContent = file.name;
+            fileSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+            
+            // Show preview, hide upload content
+            uploadContent.classList.add('hidden');
+            previewArea.classList.remove('hidden');
+            
+            // Enable submit button
+            submitBtn.disabled = false;
+            submitText.textContent = 'Analyze Constellations';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Remove image
+    removeImage.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.value = '';
+        previewArea.classList.add('hidden');
+        uploadContent.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitText.textContent = 'Select an image first';
+    });
+
+    // Form submission
+    uploadForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitText.textContent = 'Analyzing...';
+        loadingSpinner.classList.remove('hidden');
+        
+        // Submit form (you can add actual form submission logic here)
+        setTimeout(() => {
+            // Simulate processing time
+            uploadForm.submit();
+        }, 1000);
+    });
+
+    // Add some interactive stars
+    function createFloatingStars() {
+        const starsContainer = document.createElement('div');
+        starsContainer.className = 'fixed inset-0 pointer-events-none z-0';
+        document.body.appendChild(starsContainer);
+
+        for (let i = 0; i < 50; i++) {
+            const star = document.createElement('div');
+            star.className = 'absolute w-1 h-1 bg-white rounded-full opacity-30';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animation = 'twinkle 3s infinite';
+            starsContainer.appendChild(star);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        createFloatingStars();
+    });
+</script>
+
+<style>
+@keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,467 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Constellation Predictor{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+ {% load static %}
+<!-- Hero Section -->
+<section class="text-center py-20 relative">
+    <div class="max-w-7xl mx-auto px-4">
+        <h1 class="font-orbitron text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
+            All <span class="text-yellow-300">88</span> Constellations
+        </h1>
+        <p class="text-lg md:text-xl mb-10 opacity-80 max-w-3xl mx-auto">
+            Explore the complete catalog of officially recognized constellations, each with its own unique story and significance in the night sky.
+        </p>
+        
+        <!-- Search and Filter -->
+        <div class="max-w-xl mx-auto mb-12">
+            <div class="relative">
+                <input
+                    type="text"
+                    placeholder="Search constellations..."
+                    class="w-full px-6 py-4 pl-12 border border-white/20 rounded-full bg-white/10 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent backdrop-blur-sm"
+                    id="searchInput"
+                />
+                <div class="absolute left-4 top-4 text-white/60">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Toggle -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-white/10 backdrop-blur-sm rounded-full p-1 inline-flex border border-white/20">
+                <button
+                    class="px-6 py-2 rounded-full flex items-center transition-all duration-300 view-toggle active"
+                    data-view="grid"
+                    id="gridBtn"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                    </svg>
+                    Grid
+                </button>
+                <button
+                    class="px-6 py-2 rounded-full flex items-center transition-all duration-300 view-toggle"
+                    data-view="list"
+                    id="listBtn"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                    </svg>
+                    List
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Count -->
+        <p class="text-white/60 mb-8" id="resultsCount">
+            Showing <span id="filteredCount">88</span> of 88 constellations
+        </p>
+    </div>
+</section>
+
+<!-- Constellations Grid/List -->
+<section class="py-8 px-4 mb-16">
+    <div class="max-w-7xl mx-auto">
+        <!-- Grid View -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gridView">
+            <!-- Constellation cards will be populated by JavaScript -->
+        </div>
+        
+        <!-- List View -->
+        <div class="space-y-4 hidden" id="listView">
+            <!-- List items will be populated by JavaScript -->
+        </div>
+        
+        <!-- No Results Message -->
+        <div class="text-center py-12 hidden" id="noResults">
+            <div class="mb-4">
+                <svg class="w-12 h-12 text-blue-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+            </div>
+            <h3 class="font-orbitron text-xl font-bold mb-2 text-blue-400">No constellations found</h3>
+            <p class="text-white/60">Try adjusting your search terms</p>
+        </div>
+    </div>
+</section>
+
+<!-- Fun Facts Section -->
+<section class="py-16 bg-black/20">
+    <div class="max-w-7xl mx-auto px-4">
+        <h2 class="font-orbitron text-3xl md:text-4xl font-bold text-blue-400 mb-12 text-center">
+            Constellation Fun Facts
+        </h2>
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:-translate-y-2 transition-all duration-300">
+                <h3 class="font-orbitron text-xl font-semibold text-yellow-300 mb-4">Ancient History</h3>
+                <p class="text-white/80 leading-relaxed">Many constellations date back to ancient Mesopotamia and were later adopted by the Greeks and Romans, who associated them with their mythology.</p>
+            </div>
+            <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:-translate-y-2 transition-all duration-300">
+                <h3 class="font-orbitron text-xl font-semibold text-yellow-300 mb-4">Navigation</h3>
+                <p class="text-white/80 leading-relaxed">Before modern navigational tools, sailors used constellations like Ursa Minor (which contains the North Star) to navigate the seas.</p>
+            </div>
+            <div class="group p-8 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:-translate-y-2 transition-all duration-300">
+                <h3 class="font-orbitron text-xl font-semibold text-yellow-300 mb-4">Modern Recognition</h3>
+                <p class="text-white/80 leading-relaxed">The 88 official constellations were standardized by the International Astronomical Union in 1922, creating the definitive map of the night sky we use today.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Constellation data
+const constellationData = [
+    { id: 0, name: "Andromeda", description: "The Royal Sea Monster Bait, a princess chained to a rock as sacrifice", image: "image0.webp" },
+    { id: 1, name: "Antlia", description: "The Air Pump, a scientific instrument invented in the 17th century", image: "image1.webp" },
+    { id: 2, name: "Apus", description: "The Bird of Paradise, representing exotic birds from New Guinea", image: "image2.webp" },
+    { id: 3, name: "Aquarius", description: "The Water-Bearer, representing a figure pouring water from a jar", image: "image3.webp" },
+    { id: 4, name: "Aquila", description: "The Thunderbolt Eagle, Zeus's eagle that carried his thunderbolts", image: "image4.webp" },
+    { id: 5, name: "Ara", description: "The Altar, where gods formed an alliance before battling the Titans", image: "image5.webp" },
+    { id: 6, name: "Aries", description: "The Ram with the golden fleece from Greek mythology", image: "image6.webp" },
+    { id: 7, name: "Auriga", description: "The Charioteer, a skilled chariot driver in Greek mythology", image: "image7.webp" },
+    { id: 8, name: "Boötes", description: "The Herdsman, said to be hunting the bears of Ursa Major and Minor", image: "image8.webp" },
+    { id: 9, name: "Caelum", description: "The Chisel, a tool used by sculptors to create artistic works", image: "image9.webp" },
+    { id: 10, name: "Camelopardalis", description: "The Giraffe, one of the larger but fainter constellations", image: "image10.webp" },
+    { id: 11, name: "Cancer", description: "The Crab sent by Hera to distract Hercules during his labors", image: "image11.webp" },
+    { id: 12, name: "Canes Venatici", description: "The Hunting Dogs, represented by two dogs named Asterion and Chara", image: "image12.webp" },
+    { id: 13, name: "Canis Major", description: "The Big Dog, containing Sirius, the brightest star in our night sky", image: "image13.webp" },
+    { id: 14, name: "Canis Minor", description: "The Small Dog, companion to Orion the hunter", image: "image14.webp" },
+    { id: 15, name: "Capricornus", description: "The Sea Goat, a mythological creature with a goat's head and fish's tail", image: "image15.webp" },
+    { id: 16, name: "Carina", description: "The Keel of the ship Argo Navis from Jason and the Argonauts", image: "image16.webp" },
+    { id: 17, name: "Cassiopeia", description: "The Vain Queen whose boasting led to her daughter being sacrificed", image: "image17.webp" },
+    { id: 18, name: "Centaurus", description: "The Centaur, containing Alpha Centauri, the closest star system to our own", image: "image18.webp" },
+    { id: 19, name: "Cepheus", description: "The King, husband of Cassiopeia and father of Andromeda", image: "image19.webp" },
+    { id: 20, name: "Cetus", description: "The Whale or sea monster sent to devour Andromeda", image: "image20.webp" },
+    { id: 21, name: "Chamaeleon", description: "The Chameleon, a small southern constellation named after the reptile", image: "image21.webp" },
+    { id: 22, name: "Circinus", description: "The Compass used for drawing circles, a modern scientific constellation", image: "image22.webp" },
+    { id: 23, name: "Columba", description: "The Dove, representing the bird that Noah sent from the Ark", image: "image23.webp" },
+    { id: 24, name: "Coma Berenices", description: "Berenice's Hair, named after Queen Berenice II who sacrificed her hair", image: "image24.webp" },
+    { id: 25, name: "Corona Australis", description: "The Southern Crown, representing a crown worn by centaurs", image: "image25.webp" },
+    { id: 26, name: "Corona Borealis", description: "The Northern Crown, a crown given to Ariadne by Dionysus", image: "image26.webp" },
+    { id: 27, name: "Corvus", description: "The Raven, Apollo's sacred bird in Greek mythology", image: "image27.webp" },
+    { id: 28, name: "Crater", description: "The Cup, representing the cup of Apollo in Greek mythology", image: "image28.webp" },
+    { id: 29, name: "Crux", description: "The Southern Cross, the smallest constellation but one of the most recognizable", image: "image29.webp" },
+    { id: 30, name: "Cygnus", description: "The Swan, representing Zeus in disguise or the friend of Phaethon", image: "image30.webp" },
+    { id: 31, name: "Delphinus", description: "The Dolphin, representing the creature that saved the poet Arion", image: "image31.webp" },
+    { id: 32, name: "Dorado", description: "The Goldfish or Swordfish, home to most of the Large Magellanic Cloud", image: "image32.webp" },
+    { id: 33, name: "Draco", description: "The Dragon that guarded the golden apples in the Garden of Hesperides", image: "image33.webp" },
+    { id: 34, name: "Equuleus", description: "The Little Horse, representing the brother of Pegasus given to Castor", image: "image34.webp" },
+    { id: 35, name: "Eridanus", description: "The River, representing the path Phaethon fell after failing to drive the sun chariot", image: "image35.webp" },
+    { id: 36, name: "Fornax", description: "The Furnace, a modern constellation representing a chemist's furnace", image: "image36.webp" },
+    { id: 37, name: "Gemini", description: "The Twins Castor and Pollux from Greek mythology", image: "image37.webp" },
+    { id: 38, name: "Grus", description: "The Crane, a southern bird constellation created in the 16th century", image: "image38.webp" },
+    { id: 39, name: "Hercules", description: "The Strong Man, representing the Greek hero known for his twelve labors", image: "image39.webp" },
+    { id: 40, name: "Horologium", description: "The Pendulum Clock, a modern constellation representing a timekeeping device", image: "image40.webp" },
+    { id: 41, name: "Hydra", description: "The Water Serpent, the largest constellation in the sky", image: "image41.webp" },
+    { id: 42, name: "Hydrus", description: "The Watersnake, a southern constellation distinct from Hydra", image: "image42.webp" },
+    { id: 43, name: "Indus", description: "The Indian, representing a native of the East Indies", image: "image43.webp" },
+    { id: 44, name: "Lacerta", description: "The Lizard, a small and faint northern constellation", image: "image44.webp" },
+    { id: 45, name: "Leo", description: "The Lion that Hercules slew as his first labor", image: "image45.webp" },
+    { id: 46, name: "Leo Minor", description: "The Little Lion, a small constellation near Leo", image: "image46.webp" },
+    { id: 47, name: "Lepus", description: "The Hare/Rabbit hunted by Orion and his dogs", image: "image47.webp" },
+    { id: 48, name: "Libra", description: "The Scales, the only zodiac constellation representing an inanimate object", image: "image48.webp" },
+    { id: 49, name: "Lupus", description: "The Wolf, an ancient constellation associated with various myths", image: "image49.webp" },
+    { id: 50, name: "Lynx", description: "The Lynx, named for the keen eyesight needed to see its faint stars", image: "image50.webp" },
+    { id: 51, name: "Lyra", description: "The Harp played by Orpheus, containing the bright star Vega", image: "image51.webp" },
+    { id: 52, name: "Mensa", description: "The Table Mountain in South Africa, containing part of the Large Magellanic Cloud", image: "image52.webp" },
+    { id: 53, name: "Microscopium", description: "The Microscope, a modern constellation representing the scientific instrument", image: "image53.webp" },
+    { id: 54, name: "Monoceros", description: "The Unicorn, a faint constellation between Orion and Hydra", image: "image54.webp" },
+    { id: 55, name: "Musca", description: "The Fly, a small southern constellation near the Southern Cross", image: "image55.webp" },
+    { id: 56, name: "Norma", description: "The Level, a carpenter's square used for measuring right angles", image: "image56.webp" },
+    { id: 57, name: "Octans", description: "The Octant, a measuring instrument containing the south celestial pole", image: "image57.webp" },
+    { id: 58, name: "Ophiuchus", description: "The Serpent-Bearer, representing the healer Asclepius holding a serpent", image: "image58.webp" },
+    { id: 59, name: "Orion", description: "The Hunter with his distinctive belt of three stars", image: "image59.webp" },
+    { id: 60, name: "Pavo", description: "The Peacock, a southern constellation representing the beautiful bird", image: "image60.webp" },
+    { id: 61, name: "Pegasus", description: "The Winged Horse that sprang from Medusa's blood", image: "image61.webp" },
+    { id: 62, name: "Perseus", description: "The Greek Hero who rescued Andromeda from Cetus", image: "image62.webp" },
+    { id: 63, name: "Phoenix", description: "The Firebird that rises from its own ashes", image: "image63.webp" },
+    { id: 64, name: "Pictor", description: "The Painter's Easel, a modern constellation representing an artist's tool", image: "image64.webp" },
+    { id: 65, name: "Pisces", description: "The Fishes, representing Venus and Cupid transformed to escape Typhon", image: "image65.webp" },
+    { id: 66, name: "Piscis Austrinus", description: "The Southern Fish, drinking the water poured by Aquarius", image: "image66.webp" },
+    { id: 67, name: "Puppis", description: "The Stern of the ship Argo Navis from Greek mythology", image: "image67.webp" },
+    { id: 68, name: "Pyxis", description: "The Compass of the ship Argo Navis, a navigational instrument", image: "image68.webp" },
+    { id: 69, name: "Reticulum", description: "The Reticle, a small net-like pattern used in telescope eyepieces", image: "image69.webp" },
+    { id: 70, name: "Sagitta", description: "The Arrow shot by Hercules or used by Apollo to slay the Cyclops", image: "image70.webp" },
+    { id: 71, name: "Sagittarius", description: "The Archer, a centaur with a bow pointed at Scorpius", image: "image71.webp" },
+    { id: 72, name: "Scorpius", description: "The Scorpion that killed Orion in Greek mythology", image: "image72.webp" },
+    { id: 73, name: "Sculptor", description: "The Sculptor, representing an artist's studio with tools", image: "image73.webp" },
+    { id: 74, name: "Scutum", description: "The Shield, created to honor King John Sobieski of Poland", image: "image74.webp" },
+    { id: 75, name: "Serpens", description: "The Serpent, the only constellation split into two parts (Caput and Cauda)", image: "image75.webp" },
+    { id: 76, name: "Sextans", description: "The Sextant, a navigational instrument used by astronomers", image: "image76.webp" },
+    { id: 77, name: "Taurus", description: "The Bull, representing Zeus disguised to abduct Europa", image: "image77.webp" },
+    { id: 78, name: "Telescopium", description: "The Telescope, honoring the invention that revolutionized astronomy", image: "image78.webp" },
+    { id: 79, name: "Triangulum", description: "The Triangle, one of the smallest but oldest recognized constellations", image: "image79.webp" },
+    { id: 80, name: "Triangulum Australe", description: "The Southern Triangle, a small but distinctive southern constellation", image: "image80.webp" },
+    { id: 81, name: "Tucana", description: "The Toucan, home to the Small Magellanic Cloud galaxy", image: "image81.webp" },
+    { id: 82, name: "Ursa Major", description: "The Big Bear, containing the famous Big Dipper asterism", image: "image82.webp" },
+    { id: 83, name: "Ursa Minor", description: "The Small Bear, containing Polaris, the North Star", image: "image83.webp" },
+    { id: 84, name: "Vela", description: "The Sails of the ship Argo Navis, containing several bright stars", image: "image84.webp" },
+    { id: 85, name: "Virgo", description: "The Young Maiden, the second largest constellation containing bright star Spica", image: "image85.webp" },
+    { id: 86, name: "Volans", description: "The Flying Fish, a small southern constellation", image: "image86.webp" },
+    { id: 87, name: "Vulpecula", description: "The Little Fox, home to the famous Dumbbell Nebula", image: "image87.webp" }
+];
+
+// Variables
+let currentView = 'grid';
+let filteredData = [...constellationData];
+
+// DOM Elements
+const searchInput = document.getElementById('searchInput');
+const gridView = document.getElementById('gridView');
+const listView = document.getElementById('listView');
+const noResults = document.getElementById('noResults');
+const filteredCount = document.getElementById('filteredCount');
+const gridBtn = document.getElementById('gridBtn');
+const listBtn = document.getElementById('listBtn');
+
+// Create constellation card
+function createConstellationCard(constellation) {
+    return `
+        <div class="group p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+            <div class="mb-4 relative h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl overflow-hidden">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-full h-full bg-gradient-to-t from-blue-900/50 to-transparent flex items-center justify-center">
+                        <svg class="w-16 h-16 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                        <h3 class="font-orbitron text-xl font-bold text-white">${constellation.name}</h3>
+                    </div>
+                </div>
+            </div>
+            <p class="text-white/80 leading-relaxed">${constellation.description}</p>
+        </div>
+    `;
+}
+
+// Create constellation list item
+function createConstellationListItem(constellation) {
+    return `
+        <div class="group p-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 flex items-center hover:bg-white/10 transition-all duration-300 cursor-pointer">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mr-4">
+                <svg class="w-8 h-8 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-orbitron text-lg font-bold text-blue-400">${constellation.name}</h3>
+                <p class="text-white/80 text-sm leading-relaxed">${constellation.description}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Render constellations
+function renderConstellations() {
+    if (filteredData.length === 0) {
+        gridView.classList.add('hidden');
+        listView.classList.add('hidden');
+        noResults.classList.remove('hidden');
+    } else {
+        noResults.classList.add('hidden');
+        
+        if (currentView === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridView.innerHTML = filteredData.map(createConstellationCard).join('');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listView.innerHTML = filteredData.map(createConstellationListItem).join('');
+        }
+    }
+    
+    filteredCount.textContent = filteredData.length;
+}
+
+// Filter constellations
+// Filter constellations
+function filterConstellations(searchTerm) {
+    const filtered = constellationData.filter(constellation => 
+        constellation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        constellation.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    filteredData = filtered;
+    renderConstellations();
+}
+
+// Handle search input
+searchInput.addEventListener('input', (e) => {
+    filterConstellations(e.target.value);
+});
+
+// Handle view toggle
+function setActiveView(view) {
+    currentView = view;
+    
+    // Update button states
+    document.querySelectorAll('.view-toggle').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (view === 'grid') {
+        gridBtn.classList.add('active');
+        gridBtn.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
+        gridBtn.style.color = 'white';
+        listBtn.style.backgroundColor = 'transparent';
+        listBtn.style.color = 'rgba(255, 255, 255, 0.7)';
+    } else {
+        listBtn.classList.add('active');
+        listBtn.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
+        listBtn.style.color = 'white';
+        gridBtn.style.backgroundColor = 'transparent';
+        gridBtn.style.color = 'rgba(255, 255, 255, 0.7)';
+    }
+    
+    renderConstellations();
+}
+
+// Add event listeners for view toggle
+gridBtn.addEventListener('click', () => setActiveView('grid'));
+listBtn.addEventListener('click', () => setActiveView('list'));
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', () => {
+    setActiveView('grid');
+    renderConstellations();
+});
+
+// Add click handlers for constellation cards/items
+function addConstellationClickHandlers() {
+    const cards = document.querySelectorAll('[data-constellation]');
+    cards.forEach(card => {
+        card.addEventListener('click', (e) => {
+            const constellationId = e.currentTarget.dataset.constellation;
+            const constellation = constellationData.find(c => c.id == constellationId);
+            if (constellation) {
+                // You can add navigation to detailed view here
+                console.log('Clicked on:', constellation.name);
+                // Example: window.location.href = `/constellation/${constellation.id}/`;
+            }
+        });
+    });
+}
+
+// Update the card and list item creation functions to include data attributes
+function createConstellationCard(constellation) {
+    return `
+        <div class="group p-6 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 hover:-translate-y-2 transition-all duration-300 cursor-pointer" data-constellation="${constellation.id}">
+            <div class="mb-4 relative h-48 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl overflow-hidden">
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <div class="w-full h-full bg-gradient-to-t from-blue-900/50 to-transparent flex items-center justify-center">
+                        <img src="/static/images/${constellation.image}"/>
+                    </div>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                        </svg>
+                        <h3 class="font-orbitron text-xl font-bold text-white">${constellation.name}</h3>
+                    </div>
+                </div>
+            </div>
+            <p class="text-white/80 leading-relaxed">${constellation.description}</p>
+        </div>
+    `;
+}
+
+function createConstellationListItem(constellation) {
+    return `
+        <div class="group p-4 bg-white/5 rounded-2xl backdrop-blur-sm border border-white/10 flex items-center hover:bg-white/10 transition-all duration-300 cursor-pointer" data-constellation="${constellation.id}">
+            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center mr-4">
+                <svg class="w-8 h-8 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                </svg>
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-orbitron text-lg font-bold text-blue-400">${constellation.name}</h3>
+                <p class="text-white/80 text-sm leading-relaxed">${constellation.description}</p>
+            </div>
+        </div>
+    `;
+}
+
+// Update render function to add click handlers after rendering
+function renderConstellations() {
+    if (filteredData.length === 0) {
+        gridView.classList.add('hidden');
+        listView.classList.add('hidden');
+        noResults.classList.remove('hidden');
+    } else {
+        noResults.classList.add('hidden');
+        
+        if (currentView === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridView.innerHTML = filteredData.map(createConstellationCard).join('');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listView.innerHTML = filteredData.map(createConstellationListItem).join('');
+        }
+        
+        // Add click handlers after rendering
+        addConstellationClickHandlers();
+    }
+    
+    filteredCount.textContent = filteredData.length;
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+    // Focus search on '/' key
+    if (e.key === '/' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        searchInput.focus();
+    }
+    
+    // Clear search on Escape
+    if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = '';
+        filterConstellations('');
+        searchInput.blur();
+    }
+    
+    // Toggle view with 'g' for grid and 'l' for list
+    if (e.key === 'g' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
+        setActiveView('grid');
+    }
+    if (e.key === 'l' && !e.ctrlKey && !e.altKey && !e.metaKey && document.activeElement !== searchInput) {
+        setActiveView('list');
+    }
+});
+
+// Add search placeholder animation
+let placeholderIndex = 0;
+const placeholders = [
+    "Search constellations...",
+    "Try 'Orion' or 'Big Dipper'...",
+    "Find your favorite stars...",
+    "Explore the night sky..."
+];
+
+function animatePlaceholder() {
+    if (searchInput.value === '') {
+        searchInput.placeholder = placeholders[placeholderIndex];
+        placeholderIndex = (placeholderIndex + 1) % placeholders.length;
+    }
+}
+
+// Change placeholder every 3 seconds
+setInterval(animatePlaceholder, 3000);
+
+</script>
+{% endblock %}

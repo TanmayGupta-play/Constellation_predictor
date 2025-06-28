@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 16
+names: ['aquila', 'bootes', 'canis_major', 'canis_minor', 'cassiopeia', 'cygnus', 'gemini', 'leo', 'lyra', 'moon', 'orion', 'pleiades', 'sagittarius', 'scorpius', 'taurus', 'ursa_major']
+
+roboflow:
+  workspace: my-workspace-1ekf0
+  project: constellation-finder
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/my-workspace-1ekf0/constellation-finder/dataset/3

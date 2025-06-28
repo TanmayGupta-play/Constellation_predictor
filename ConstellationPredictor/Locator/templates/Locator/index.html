@@ -1,0 +1,459 @@
+{% extends 'base.html' %}
+{% block content%}
+ 
+<body class="min-h-screen bg-gradient-to-br from-cosmic-blue via-cosmic-purple to-cosmic-violet text-white p-4 font-sans">
+    <div class="max-w-4xl mx-auto bg-white/10 backdrop-blur-cosmic rounded-3xl p-6 shadow-2xl border border-white/10">
+        <h1 class="text-4xl md:text-5xl font-bold text-center mb-8 bg-gradient-to-r from-cosmic-gold via-cosmic-yellow to-white bg-clip-text text-transparent drop-shadow-lg">
+            🌟 Constellation Finder
+        </h1>
+        
+        <!-- Location Section -->
+        <div class="mb-8 p-6 bg-white/5 rounded-2xl border border-white/10">
+            <h2 class="text-cosmic-gold text-xl font-semibold text-center mb-4">📍 Get Your Location</h2>
+            <button id="getLocationBtn" class="block mx-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                Get My Location
+            </button>
+            <div id="locationInfo" class="hidden mt-4 p-4 bg-green-500/10 border-l-4 border-green-400 rounded-lg text-center">
+                <!-- Location info will be populated here -->
+            </div>
+        </div>
+
+        <!-- Constellation Results Section -->
+        <div class="hidden mb-8 p-6 bg-white/5 rounded-2xl border border-white/10" id="constellationSection">
+            <h2 class="text-cosmic-gold text-xl font-semibold text-center mb-4">✨ Visible Constellations</h2>
+            <button id="findConstellationsBtn" class="block mx-auto px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                Find Constellations
+            </button>
+            <div id="loadingIndicator" class="hidden text-center text-cosmic-gold text-lg py-6">
+                🔍 Finding visible constellations for your location...
+            </div>
+            <div id="constellationResponse" class="hidden mt-4 p-5 bg-cosmic-gold/10 border-l-4 border-cosmic-gold rounded-lg leading-relaxed">
+                <!-- Gemini response will be populated here -->
+            </div>
+            <div id="constellationList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                <!-- Constellation cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Compass Section -->
+        <div class="hidden p-6 bg-white/5 rounded-2xl border border-white/10" id="compassSection">
+            <h2 class="text-cosmic-gold text-xl font-semibold text-center mb-4">🧭 Constellation Compass</h2>
+            <div class="text-center">
+                <p id="selectedConstellation" class="text-lg text-cosmic-gold mb-4 font-medium"></p>
+                
+                <div class="relative w-64 h-64 mx-auto mb-6">
+                    <!-- Compass Circle -->
+                    <div class="w-full h-full border-4 border-cosmic-gold rounded-full relative bg-gradient-radial from-cosmic-gold/10 to-transparent shadow-lg shadow-cosmic-gold/30">
+                        <!-- Compass Needle -->
+                        <div id="compassNeedle" class="absolute w-1.5 h-24 bg-gradient-to-t from-red-500 to-cosmic-gold top-6 left-1/2 transform -translate-x-1/2 origin-bottom transition-transform duration-700 ease-out rounded-full shadow-lg shadow-red-500/50"></div>
+                        
+                        <!-- Direction Markers -->
+                        <div class="absolute inset-0">
+                            <div class="absolute top-2 left-1/2 transform -translate-x-1/2 text-cosmic-gold font-bold text-xl drop-shadow-lg">N</div>
+                            <div class="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-cosmic-gold font-bold text-xl drop-shadow-lg">S</div>
+                            <div class="absolute right-2 top-1/2 transform -translate-y-1/2 text-cosmic-gold font-bold text-xl drop-shadow-lg">E</div>
+                            <div class="absolute left-2 top-1/2 transform -translate-y-1/2 text-cosmic-gold font-bold text-xl drop-shadow-lg">W</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="p-4 bg-cosmic-gold/10 rounded-xl text-center mb-4">
+                    <div class="mb-2"><strong>Your Heading: <span id="currentHeading" class="text-cosmic-gold">---°</span></strong></div>
+                    <div class="mb-2"><strong>Target Direction: <span id="targetDirection" class="text-cosmic-gold">---°</span></strong></div>
+                    <div id="compassGuide" class="text-lg text-cosmic-gold font-medium"></div>
+                </div>
+                
+                <button id="startCompassBtn" class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-700 text-white rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/25 mr-2">
+                    Start Compass
+                </button>
+                <button id="stopCompassBtn" class="hidden px-6 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-full font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25">
+                    Stop Compass
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class ConstellationFinder {
+            constructor() {
+                this.currentLocation = null;
+                this.currentHeading = 0;
+                this.targetHeading = 0;
+                this.selectedConstellation = null;
+                this.isCompassActive = false;
+                this.constellationDirections = {};
+                this.orientationHandler = null;
+                this.init();
+            }
+
+            init() {
+                document.getElementById('getLocationBtn').addEventListener('click', () => this.getLocation());
+                document.getElementById('findConstellationsBtn').addEventListener('click', () => this.findConstellations());
+                document.getElementById('startCompassBtn').addEventListener('click', () => this.startCompass());
+                document.getElementById('stopCompassBtn').addEventListener('click', () => this.stopCompass());
+            }
+
+            async getLocation() {
+                const btn = document.getElementById('getLocationBtn');
+                const info = document.getElementById('locationInfo');
+                const constellationSection = document.getElementById('constellationSection');
+                
+                btn.disabled = true;
+                btn.textContent = 'Getting Location...';
+
+                if (!navigator.geolocation) {
+                    this.showError('Geolocation is not supported by this browser.');
+                    btn.disabled = false;
+                    btn.textContent = 'Get My Location';
+                    return;
+                }
+
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 60000
+                };
+
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, options);
+                    });
+
+                    this.currentLocation = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        accuracy: position.coords.accuracy
+                    };
+
+                    info.innerHTML = `
+                        <strong>📍 Location Found!</strong><br>
+                        Latitude: ${this.currentLocation.latitude.toFixed(6)}°<br>
+                        Longitude: ${this.currentLocation.longitude.toFixed(6)}°<br>
+                        Accuracy: ±${Math.round(this.currentLocation.accuracy)} meters
+                    `;
+                    info.classList.remove('hidden');
+                    constellationSection.classList.remove('hidden');
+                    
+                    btn.disabled = false;
+                    btn.textContent = 'Update Location';
+
+                } catch (error) {
+                    let message = 'Unable to retrieve location: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += 'Permission denied. Please allow location access.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += 'Location unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            message += 'Request timeout.';
+                            break;
+                        default:
+                            message += error.message || 'Unknown error.';
+                            break;
+                    }
+                    this.showError(message);
+                    btn.disabled = false;
+                    btn.textContent = 'Get My Location';
+                }
+            }
+
+            async findConstellations() {
+                if (!this.currentLocation) {
+                    this.showError('Please get your location first.');
+                    return;
+                }
+
+                const btn = document.getElementById('findConstellationsBtn');
+                const loading = document.getElementById('loadingIndicator');
+                const response = document.getElementById('constellationResponse');
+                const list = document.getElementById('constellationList');
+
+                btn.disabled = true;
+                loading.classList.remove('hidden');
+                response.classList.add('hidden');
+                list.innerHTML = '';
+
+                try {
+                    // First save location to backend
+                    const locationResponse = await fetch("{% url 'Locator:save_location' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCookie('csrftoken')
+                        },
+                        body: JSON.stringify(this.currentLocation)
+                    });
+
+                    if (!locationResponse.ok) {
+                        throw new Error('Failed to save location');
+                    }
+
+                    const locationData = await locationResponse.json();
+                    
+                    if (locationData.status !== 'success') {
+                        throw new Error(locationData.message || 'Failed to save location');
+                    }
+
+                    // Now find constellations using Gemini
+                    const constellationResponse = await fetch("{% url 'Locator:find_constellations' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': this.getCookie('csrftoken')
+                        },
+                        body: JSON.stringify({
+                            location_id: locationData.location_id
+                        })
+                    });
+
+                    if (!constellationResponse.ok) {
+                        throw new Error('Failed to get constellation data');
+                    }
+
+                    const data = await constellationResponse.json();
+                    
+                    if (data.status !== 'success') {
+                        throw new Error(data.message || 'Failed to find constellations');
+                    }
+
+                    // Display Gemini response
+                    response.innerHTML = data.response;
+                    response.classList.remove('hidden');
+                    
+                    // Display constellation list with directions
+                    this.displayConstellationList(data.visible_constellations, data.compass_directions);
+                    
+                } catch (error) {
+                    this.showError('Error finding constellations: ' + error.message);
+                } finally {
+                    loading.classList.add('hidden');
+                    btn.disabled = false;
+                }
+            }
+
+            displayConstellationList(constellations, directions) {
+                const list = document.getElementById('constellationList');
+                
+                if (!constellations || constellations.length === 0) {
+                    list.innerHTML = '<p class="col-span-full text-center text-cosmic-gold">No constellations found for your location.</p>';
+                    return;
+                }
+
+                this.constellationDirections = {};
+                
+                list.innerHTML = constellations.map(constellation => {
+                    const direction = directions[constellation] || this.getRandomDirection();
+                    this.constellationDirections[constellation] = direction;
+                    
+                    const directionDegrees = this.getDirectionDegrees(direction);
+                    
+                    return `
+                        <div class="constellation-card p-4 bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl text-center cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/25 border-2 border-transparent hover:border-cosmic-gold" data-constellation="${constellation}" data-direction="${directionDegrees}">
+                            <h3 class="text-lg font-semibold mb-2">⭐ ${constellation}</h3>
+                            <p class="text-sm text-purple-200">Direction: ${direction}</p>
+                            <p class="text-cosmic-gold font-medium">${directionDegrees}°</p>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers
+                list.addEventListener('click', (e) => {
+                    const card = e.target.closest('.constellation-card');
+                    if (card) {
+                        this.selectConstellation(card);
+                    }
+                });
+            }
+
+            getDirectionDegrees(direction) {
+                const directionMap = {
+                    'North': 0, 'N': 0,
+                    'Northeast': 45, 'NE': 45,
+                    'East': 90, 'E': 90,
+                    'Southeast': 135, 'SE': 135,
+                    'South': 180, 'S': 180,
+                    'Southwest': 225, 'SW': 225,
+                    'West': 270, 'W': 270,
+                    'Northwest': 315, 'NW': 315,
+                    'Overhead': 0, 'Zenith': 0
+                };
+                
+                return directionMap[direction] || 0;
+            }
+
+            getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            selectConstellation(card) {
+                // Remove previous selection
+                document.querySelectorAll('.constellation-card').forEach(c => {
+                    c.classList.remove('border-cosmic-gold', 'bg-gradient-to-br', 'from-cosmic-gold', 'to-cosmic-yellow', 'text-black');
+                    c.classList.add('bg-gradient-to-br', 'from-purple-600', 'to-purple-800');
+                });
+                
+                // Select new card
+                card.classList.remove('from-purple-600', 'to-purple-800');
+                card.classList.add('border-cosmic-gold', 'from-cosmic-gold', 'to-cosmic-yellow', 'text-black');
+                
+                const constellation = card.dataset.constellation;
+                const direction = parseInt(card.dataset.direction);
+                
+                this.selectedConstellation = constellation;
+                this.targetHeading = direction;
+                
+                document.getElementById('selectedConstellation').textContent = `🎯 Finding: ${constellation}`;
+                document.getElementById('targetDirection').textContent = `${direction}°`;
+                document.getElementById('compassSection').classList.remove('hidden');
+                
+                // Update compass if active
+                if (this.isCompassActive) {
+                    this.updateCompassGuide();
+                }
+            }
+
+            startCompass() {
+                if (this.isCompassActive) return;
+
+                if (!('DeviceOrientationEvent' in window)) {
+                    this.showError('Device orientation is not supported on this device.');
+                    return;
+                }
+
+                // Request permission for iOS 13+
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(response => {
+                            if (response === 'granted') {
+                                this.initCompass();
+                            } else {
+                                this.showError('Permission denied for device orientation.');
+                            }
+                        })
+                        .catch(error => {
+                            this.showError('Error requesting compass permission.');
+                        });
+                } else {
+                    this.initCompass();
+                }
+            }
+
+            initCompass() {
+                this.orientationHandler = (event) => {
+                    let heading = event.alpha;
+                    if (heading !== null) {
+                        heading = heading < 0 ? heading + 360 : heading;
+                        this.updateCompass(heading);
+                    }
+                };
+
+                window.addEventListener('deviceorientationabsolute', this.orientationHandler);
+                window.addEventListener('deviceorientation', this.orientationHandler);
+
+                this.isCompassActive = true;
+                document.getElementById('startCompassBtn').classList.add('hidden');
+                document.getElementById('stopCompassBtn').classList.remove('hidden');
+
+                // Check if compass is working
+                setTimeout(() => {
+                    if (this.currentHeading === 0) {
+                        this.showError('Compass data not available. This feature works best on mobile devices.');
+                    }
+                }, 3000);
+            }
+
+            updateCompass(heading) {
+                if (heading !== null && !isNaN(heading)) {
+                    this.currentHeading = heading;
+                    
+                    const needle = document.getElementById('compassNeedle');
+                    const currentHeadingEl = document.getElementById('currentHeading');
+                    
+                    needle.style.transform = `translateX(-50%) rotate(${360 - heading}deg)`;
+                    currentHeadingEl.textContent = `${Math.round(heading)}°`;
+                    this.updateCompassGuide();
+                }
+            }
+
+            updateCompassGuide() {
+                if (!this.selectedConstellation) return;
+
+                const guide = document.getElementById('compassGuide');
+                const difference = this.calculateAngleDifference(this.currentHeading, this.targetHeading);
+                
+                if (Math.abs(difference) < 10) {
+                    guide.innerHTML = '🎯 <strong>Perfect! Look up to find ' + this.selectedConstellation + '!</strong>';
+                    guide.className = 'text-lg text-green-400 font-medium';
+                } else if (difference > 0) {
+                    guide.innerHTML = `↻ Turn right ${Math.round(Math.abs(difference))}° to find ${this.selectedConstellation}`;
+                    guide.className = 'text-lg text-cosmic-gold font-medium';
+                } else {
+                    guide.innerHTML = `↺ Turn left ${Math.round(Math.abs(difference))}° to find ${this.selectedConstellation}`;
+                    guide.className = 'text-lg text-cosmic-gold font-medium';
+                }
+            }
+
+            calculateAngleDifference(current, target) {
+                let diff = target - current;
+                if (diff > 180) diff -= 360;
+                if (diff < -180) diff += 360;
+                return diff;
+            }
+
+            stopCompass() {
+                this.isCompassActive = false;
+                
+                if (this.orientationHandler) {
+                    window.removeEventListener('deviceorientationabsolute', this.orientationHandler);
+                    window.removeEventListener('deviceorientation', this.orientationHandler);
+                    this.orientationHandler = null;
+                }
+                
+                document.getElementById('startCompassBtn').classList.remove('hidden');
+                document.getElementById('stopCompassBtn').classList.add('hidden');
+            }
+
+            showError(message) {
+                const existingError = document.querySelector('.error-message');
+                if (existingError) {
+                    existingError.remove();
+                }
+
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message fixed top-4 right-4 bg-red-500/90 text-white px-6 py-3 rounded-lg shadow-lg border border-red-400 z-50 max-w-sm';
+                errorDiv.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="mr-2">⚠️</span>
+                        <span class="flex-1">${message}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-white hover:text-red-200">×</button>
+                    </div>
+                `;
+                document.body.appendChild(errorDiv);
+
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.remove();
+                    }
+                }, 7000);
+            }
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new ConstellationFinder();
+        });
+    </script>
+{% endblock %}
