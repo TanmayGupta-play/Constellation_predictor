@@ -16,7 +16,102 @@ import queue
 import time
 from PIL import Image
 import io
+import json
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from dotenv import load_dotenv
+load_dotenv()
+GEMINI_API_KEY = os.getenv("API-KEY") 
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_constellation_info(request):
+    try:
+        data = json.loads(request.body)
+        constellation_name = data.get('constellation_name', '')
+        
+        if not constellation_name:
+            return JsonResponse({'error': 'Constellation name is required'}, status=400)
+        
+        prompt = f"""
+        Provide a brief, fascinating description of the constellation {constellation_name}. 
+        Include key mythological background, notable stars, and interesting facts.
+        Keep it concise, under 100 words, and engaging for general audience.
+        """
+        
+        gemini_response = call_gemini_api(prompt)
+        
+        if gemini_response:
+            info = gemini_response
+        else:
+            info = get_basic_constellation_info(constellation_name)
+        
+        return JsonResponse({
+            'name': constellation_name,
+            'info': info
+        })
+            
+    except Exception as e:
+        print(f"Error in get_constellation_info: {str(e)}")
+        return JsonResponse({'error': 'Internal server error'}, status=500)
+
+def call_gemini_api(prompt):
+    try:
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        
+        payload = {
+            "contents": [{
+                "parts": [{
+                    "text": prompt
+                }]
+            }],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 150,
+            }
+        }
+        
+        response = requests.post(
+            f"{GEMINI_API_URL}?key={GEMINI_API_KEY}",
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            if 'candidates' in result and len(result['candidates']) > 0:
+                return result['candidates'][0]['content']['parts'][0]['text']
+        
+        return None
+        
+    except Exception as e:
+        print(f"Gemini API error: {str(e)}")
+        return None
+
+def get_basic_constellation_info(constellation_name):
+    """Fallback constellation information"""
+    basic_info = {
+        'Andromeda': 'Named after the chained princess in Greek mythology. Contains the Andromeda Galaxy, our nearest major galactic neighbor, visible as a fuzzy patch to the naked eye.',
+        'Orion': 'The Hunter constellation, featuring bright stars Betelgeuse and Rigel, plus the famous Orion Nebula where new stars are born.',
+        'Ursa Major': 'The Great Bear, home to the Big Dipper. Its pointer stars lead to the North Star, making it crucial for navigation.',
+        'Cassiopeia': 'The vain Queen forms a distinctive W-shape. This circumpolar constellation is visible year-round from northern latitudes.',
+        'Leo': 'The Lion of spring skies. Bright star Regulus marks the lion\'s heart, while the "backwards question mark" forms its mane.',
+        'Cygnus': 'The Swan flies along the Milky Way. Features Deneb, one of the most luminous stars known, and is also called the Northern Cross.',
+        'Scorpius': 'The Scorpion with red heart Antares. In mythology, it killed Orion, which is why they\'re never visible together.',
+        'Sagittarius': 'The Archer points toward our galaxy\'s center. Rich in star clusters and nebulae, including the beautiful Lagoon Nebula.',
+        'Draco': 'The Dragon winds around the north pole. Its star Thuban was the pole star when Egyptian pyramids were built.',
+        'Pegasus': 'The Winged Horse features the Great Square. Contains the first exoplanet discovered around a sun-like star.',
+    }
+    
+    return basic_info.get(constellation_name, 
+        f"{constellation_name} is a constellation with rich astronomical and mythological significance, "
+        f"containing unique stars and deep-sky objects that have fascinated humanity for millennia.")
 # Global models - load once at startup
 COCO_MODEL = None
 CONSTELLATION_MODEL = None
@@ -47,10 +142,8 @@ def initialize_models():
         except Exception as e:
             print(f"Error loading Constellation model: {e}")
 
-# Initialize models on module load
 initialize_models()
 
-# Constellation class names (update according to your model)
 CONSTELLATION_CLASSES = {
     0: "Andromeda", 1: "Antlia", 2: "Apus", 3: "Aquarius", 4: "Aquila",
     5: "Ara", 6: "Aries", 7: "Auriga", 8: "Bootes", 9: "Caelum",
@@ -73,7 +166,6 @@ CONSTELLATION_CLASSES = {
 }
 
 def resize_frame_for_processing(frame, max_size=640):
-    """Resize frame to reduce processing time while maintaining aspect ratio"""
     height, width = frame.shape[:2]
     if max(height, width) > max_size:
         if width > height:
@@ -88,7 +180,6 @@ def resize_frame_for_processing(frame, max_size=640):
     return frame, (1.0, 1.0)
 
 def fast_detect_objects(frame, model, confidence_threshold=0.3):
-    """Optimized object detection with reduced confidence threshold for speed"""
     try:
         # Run inference with optimized parameters
         results = model(
@@ -288,7 +379,8 @@ def process_upload(request):
                             conf = float(box.conf[0])
                             class_id = int(box.cls[0])
                             
-                            constellation_name = CONSTELLATION_CLASSES.get(class_id, f"Unknown_{class_id}")
+                            # Use the model's actual class names instead of manual mapping
+                            constellation_name = CONSTELLATION_MODEL.names[class_id]
                             
                             detected_constellations.append({
                                 'name': constellation_name,
@@ -299,7 +391,7 @@ def process_upload(request):
                 print(f"Detected constellations: {detected_constellations}")
             else:
                 if coco_results:
-                    pass
+                    annotated_frame = coco_results[0].plot()
                 else:
                     annotated_frame = frame
                 analysis_type = "objects"
