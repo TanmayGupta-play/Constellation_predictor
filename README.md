@@ -70,8 +70,10 @@ curl -LsSf https://astral.sh/uv/0.7.16/install.sh | sh
    uv venv
    ```
 
-3. **Install dependencies:**
+3. **Install Dependencies**
+Use the requirements.txt in the project root to install development dependencies.
 
+⚠️ Note: Ignore the ConstellationPredictor/requirements.txt — it is used only for deployment purposes.
    ```bash
    uv pip install -r requirements.txt
    ```
